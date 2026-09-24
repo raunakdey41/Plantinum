@@ -6,20 +6,19 @@ import { getFirestore } from 'firebase-admin/firestore';
 if (!getApps().length) {
   try {
     const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!serviceAccountKey) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set');
+    if (serviceAccountKey) {
+      const serviceAccount = JSON.parse(serviceAccountKey);
+      initializeApp({
+        credential: cert(serviceAccount),
+      });
+      console.log('Firebase Admin initialized successfully');
+    } else {
+      console.warn('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set. Firebase Admin features will be unavailable.');
     }
-    
-    const serviceAccount = JSON.parse(serviceAccountKey);
-    
-    initializeApp({
-      credential: cert(serviceAccount),
-    });
-    console.log('Firebase Admin initialized successfully');
   } catch (error) {
     console.error('Firebase Admin initialization error:', error);
   }
 }
 
-export const adminAuth = getAuth();
-export const adminDb = getFirestore();
+export const adminAuth = getApps().length ? getAuth() : null as any;
+export const adminDb = getApps().length ? getFirestore() : null as any;

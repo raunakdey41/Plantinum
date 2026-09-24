@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { products } from '@/data/products';
+import GPayCheckoutModal from '@/components/GPayCheckoutModal';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,16 +13,17 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { cart, removeFromCart, updateQuantity } = useStore();
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
   // Prevent background scrolling when open
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen || isCheckoutModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen]);
+  }, [isOpen, isCheckoutModalOpen]);
 
   const cartTotal = cart.reduce((total, item) => {
     const numPrice = Number(item.price.replace(/[^0-9]/g, ''));
@@ -30,9 +32,17 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   // Full product details based on cart items
   const cartProducts = cart.map(item => {
-    const p = products.find(prod => prod.id === item.id);
-    return { ...item, image: p?.image, botanicalName: p?.botanicalName };
+    const p = products.find(prod => prod.id === item.id || prod.name.toLowerCase() === item.name.toLowerCase());
+    return { 
+      ...item, 
+      image: item.image || p?.image || '/hero_full_bg.png', 
+      botanicalName: item.botanicalName || p?.botanicalName || 'Luxury Specimen' 
+    };
   });
+
+  const handleOpenCheckout = () => {
+    setIsCheckoutModalOpen(true);
+  };
 
   return (
     <>
@@ -111,21 +121,34 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
               <div className="flex justify-between text-secondary text-sm">
                 <span>Shipping</span>
-                <span className="font-semibold">{cartTotal > 999 ? 'Free' : 'Calculated at checkout'}</span>
+                <span className="font-semibold">{cartTotal > 999 ? 'Free' : '₹99'}</span>
               </div>
               <div className="h-px bg-surface-container my-1"></div>
               <div className="flex justify-between text-primary font-bold">
                 <span>Total</span>
-                <span className="font-price-lg text-lg">₹{cartTotal.toLocaleString('en-IN')}</span>
+                <span className="font-price-lg text-lg">₹{(cartTotal + (cartTotal > 999 ? 0 : 99)).toLocaleString('en-IN')}</span>
               </div>
             </div>
-            <button className="w-full py-3.5 rounded-xl bg-primary text-on-primary font-label-lg font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-colors cursor-pointer shadow-md">
-              <span>Checkout</span>
+            <button 
+              onClick={handleOpenCheckout}
+              className="w-full py-3.5 rounded-xl bg-primary text-on-primary font-label-lg font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-colors cursor-pointer shadow-md"
+            >
+              <span>Checkout via GPay</span>
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
           </div>
         )}
       </div>
+
+      {/* GPay QR Code Checkout Modal */}
+      <GPayCheckoutModal 
+        isOpen={isCheckoutModalOpen}
+        onClose={() => {
+          setIsCheckoutModalOpen(false);
+          onClose();
+        }}
+      />
     </>
   );
 }
+

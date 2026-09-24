@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const { email, otp, password, action } = await request.json();
 
     if (!email || !otp || !password || !action) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!adminDb || !adminAuth) {
+      return NextResponse.json({ error: 'Firebase Admin service unavailable' }, { status: 500 });
     }
 
     // Check OTP in Firestore

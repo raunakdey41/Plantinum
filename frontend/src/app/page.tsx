@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import BotanicalLivingHero from '@/components/BotanicalLivingHero';
 import { SylvaLivingWorldScene } from '@/shaders/sylva-living-world/SylvaLivingWorldScene';
 import '@/shaders/threeui.css';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function Home() {
   const [pincode, setPincode] = useState('');
@@ -20,12 +22,22 @@ export default function Home() {
     }
   };
 
-  const { addToCart } = useStore();
+  const [bundles, setBundles] = useState<any[]>([]);
+  useEffect(() => {
+    const fetchBundles = async () => {
+      try {
+        const q = query(collection(db, 'bundles'), where('isAvailable', '==', true));
+        const snapshot = await getDocs(q);
+        const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setBundles(fetched.slice(0, 3)); // Display up to 3 bundles on homepage
+      } catch (err) {
+        console.error("Error fetching bundles: ", err);
+      }
+    };
+    fetchBundles();
+  }, []);
 
-  const addToCartMock = (productName: string, price: string) => {
-    const id = productName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    addToCart({ id, name: productName, price });
-  };
+  const { cart, addToCart, updateQuantity, wishlist, toggleWishlist } = useStore();
 
   return (
     <>
@@ -56,7 +68,7 @@ export default function Home() {
                 Garden &amp; Home
               </h1>
               <p className="text-stone-200 text-sm sm:text-base xl:text-lg leading-relaxed font-light mb-8 text-pretty max-w-xl drop-shadow-sm">
-                Discover our curated collection of indoor botanical specimens, hand-selected to thrive in your unique living spaces. From resilient succulents and air-purifying aroids to elegant fruit trees and rare tropical foliage, transform your home into a natural sanctuary of calm and luxury.
+                From resilient succulents and air-purifying aroids to elegant fruit trees and rare tropical foliage, transform your home into a natural sanctuary of calm and luxury.
               </p>
               <div className="flex items-center gap-4">
                 <Link 
@@ -73,10 +85,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Minimal Bottom Tagline / Copyright Line */}
-        <div className="relative z-20 w-full border-t border-white/5 py-4 px-6 lg:px-12 text-center text-xs text-stone-400 backdrop-blur-[2px]">
-          <p>© 2026 Plantinum Luxury Botanicals. Handcrafted for modern living sanctuaries.</p>
-        </div>
+        
       </section>
 
       {/* Mobile Marquee (Placed after hero section) */}
@@ -163,13 +172,13 @@ export default function Home() {
 
             <Link href="/shop/indoor-plants" className="group flex flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
               <div className="w-full aspect-square rounded-xl overflow-hidden bg-surface-container mb-space-sm relative">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGv29eSIe-Mqb1dihi9SH6MyItABA7CDs6Mu1V2QkTHHq2Lw2oyd_IJ-PWYBv6Oj-TpXlRLQWBJWw6yUmq7xEKvr08KuHDMaw8up5rz5Iwf7uKjt0qRjoEMz-3Y_9EXJLlmDO9cCOKH0imdr7Y7oArjeL9A9Sh_K_qSErl4gU8Tx6Cyl3fajpYWfKYSGmqOYYl_tKjlLQGpyD1l1oJ0SRqDg7SwwfrWpx_g60-2NQYtAsFY2etkDvJHQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Luxury Planters" />
+                <img src="/premium_pots.jpg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Premium Pots" />
               </div>
-              <h3 className="font-title-md text-[15px] text-primary text-center font-bold">Luxury Planters</h3>
+              <h3 className="font-title-md text-[15px] text-primary text-center font-bold">Premium Pots</h3>
               <span className="font-body-sm text-body-sm text-outline text-center mt-0.5">45+ Designs</span>
             </Link>
 
-            <Link href="/shop/indoor-plants" className="group flex flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
+            <Link href="/shop/indoor-plants" className="hidden sm:flex group flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
               <div className="w-full aspect-square rounded-xl overflow-hidden bg-surface-container mb-space-sm relative">
                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCI1OUn2wF_IPx-G1rWOdgDbIEjzQwe_n43j6nxbRU5abRE4RSzjuFoFITD2ODWwQW3mw4XNKJEpZv6VbTYsbFB5tlU4ierDoZjeXqYirOjGlfaus1Woraj6hlf-I2PRWWWqQObLOY-J0RyklYi1CGz41fMJ6ysC-plSSqbg-ix_Gmx-bOwKWTBZz8v2ZdKcEVJZ_vrvgXCK9xjx--65Wfno0NkBmGCS6xshH_m3ONxK8pgaNvuYifAHg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Balcony Greens" />
               </div>
@@ -177,7 +186,7 @@ export default function Home() {
               <span className="font-body-sm text-body-sm text-outline text-center mt-0.5">60+ Varieties</span>
             </Link>
 
-            <Link href="/shop/indoor-plants" className="group flex flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
+            <Link href="/shop/care-and-soil" className="group flex flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
               <div className="w-full aspect-square rounded-xl overflow-hidden bg-surface-container mb-space-sm relative">
                 <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjS-XqioHTS3YJKcusEMFVVWUsQTJQmRs4S-qNOU3XDqolVgJ89nraDbrecaf2rMlna7s_WbDwG018zPm8ijmLOqXYSwFrSliPpgDK8mNEIdrgqs_kkpPGZk2dXBGmk4LrmxVlkxaP2uxfYZGyghf3g97axi--F-vB05L3-EWw56h3ZHUglTTpaCQMvuFQ1XSUsrh8b5H-3gzOOKS3VpNmWWIXnCQI3GiD6ObdWxQ3v4JSx8x3C_blFA" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Soil &amp; Care" />
               </div>
@@ -193,18 +202,239 @@ export default function Home() {
               <span className="font-body-sm text-body-sm text-outline text-center mt-0.5">Save Up to 25%</span>
             </Link>
 
-            <Link href="/shop/indoor-plants" className="group flex flex-col items-center p-space-sm rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="w-full aspect-square rounded-xl overflow-hidden bg-surface-container mb-space-sm relative">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1_v_pz5mOLChuDHnOe5XJKcEzrh-21CfSwMtTBhN-tgx4jCNIbJ-XYjKSgZ_vuAo4hRX0d2mxCtVdQbn8jQ-kQgG4-TlSn85WWRq21nNWg0ik460uu2_wYu-2UNi_6LEwY0kTK994PywdhZOBoFrg2XpIadVClYM7N-d2UXP1NNBgqUMBsH8G7nj639gLTGn33j-iZeeaChNcwGPpo-940dGK3UhK817N5zk5Kvvr2wJjt0rRuin89g" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Artisan Tools" />
-              </div>
-              <h3 className="font-title-md text-[15px] text-primary text-center font-bold">Artisan Tools</h3>
-              <span className="font-body-sm text-body-sm text-outline text-center mt-0.5">Brass &amp; Steel</span>
-            </Link>
           </div>
         </div>
       </section>
 
-      {/* SPACES DESIGNED TO BREATHE (ROOM INSPIRATION) */}
+
+
+{/* ACCLAIMED BESTSELLERS */}
+      <section className="w-full px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-space-sm">
+            <div>
+              <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Acclaimed Botanicals</span>
+              <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
+                Our Acclaimed Bestsellers
+              </h2>
+            </div>
+            <Link href="/shop/indoor-plants" className="inline-flex items-center gap-1 text-secondary font-label-md text-label-md uppercase tracking-wider font-bold hover:text-primary transition-colors">See more <span className="material-symbols-outlined text-[18px]">arrow_forward</span></Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+            {/* Bestseller 1 - Monstera Deliciosa (p9) */}
+            {(() => {
+              const pId = 'p9';
+              const pName = 'Monstera Deliciosa';
+              const pPrice = '₹1,499';
+              const pImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuCcUXX4iTR8DmRnOsm3zDdwL6-CpAIAkl68G30W_VZEI4r8RlNcuIlf_1MYPg_EpcoCnHsLt_neFc-f2ZP2TQhPeEaoX81S6TOWik_KqTO1rs7fRyrGLupSbkdEd7liyQt8HHdedQRjck7c1P43BS1dqQH_T6yb2KochZHJHheGQQTAr2vXV9YYpDHLdpdW9AJFI0Gbd4ksrrRr--lfGmX64JIJKBow6PicEX1CJi32RhShPQNh8nn89w';
+              const pBot = 'Monstera deliciosa';
+              const cartItem = cart.find(i => i.id === pId);
+              return (
+                <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
+                  <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
+                    <Link href="/shop/product/monstera-deliciosa">
+                      <img src={pImg} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer" alt={pName} />
+                    </Link>
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Air Purifier</span>
+                    <button aria-label="Add to Wishlist" type="button" onClick={() => toggleWishlist(pId)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors cursor-pointer z-10">
+                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: wishlist.includes(pId) ? "'FILL' 1" : "'FILL' 0", color: wishlist.includes(pId) ? 'var(--color-tertiary)' : undefined }}>favorite</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-1.5 mb-1 text-outline">
+                      <span className="material-symbols-outlined text-[15px] text-tertiary">wb_sunny</span>
+                      <span className="font-body-sm text-[12px]">Indirect Sun</span>
+                      <span className="text-outline-variant">•</span>
+                      <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
+                      <span className="font-body-sm text-[12px]">Weekly</span>
+                    </div>
+                    <h3 className="font-title-md text-title-md text-primary font-bold">{pName}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes 8" Off-White Ceramic Planter</p>
+                    <div className="mt-auto pt-space-sm flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-price-lg text-price-lg text-primary font-bold">{pPrice}</span>
+                        <span className="font-body-sm text-body-sm text-outline line-through">₹1,999</span>
+                        <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">25% OFF</span>
+                      </div>
+                      {cartItem ? (
+                        <div className="flex items-center justify-between py-1 px-2.5 rounded-lg border border-primary text-primary bg-surface-container-lowest">
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity - 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">remove</span></button>
+                          <span className="font-bold text-xs mx-2">{cartItem.quantity}</span>
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity + 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">add</span></button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => addToCart({ id: pId, name: pName, price: pPrice, image: pImg, botanicalName: pBot })} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Bestseller 2 - Snake Plant Laurentii (p2) */}
+            {(() => {
+              const pId = 'p2';
+              const pName = 'Snake Plant Laurentii';
+              const pPrice = '₹899';
+              const pImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCn4GgGKEAYjjyew-ClUlItulF64x2RDpzlZIqYXGdfTS9vK_2qr2csN0dGnzwFd8RRQxa2c9gBuqQRmC86IWuifzIwg6YFuxyevKmbjaGs4QiLAd1EzmU8nJ7llDkThlOavi9zEo7IX_IjmLlo3RtmLsgD0X43EUlKpYpg_cfyuLa4Ue5orCly55C3bqYOBB-CsFogte3VjMDvWMsnkpjIQrUBdB8_wWxPLB4piAQMT0VWIMt19NmxQ';
+              const pBot = 'Sansevieria trifasciata';
+              const cartItem = cart.find(i => i.id === pId);
+              return (
+                <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
+                  <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
+                    <Link href="/shop/product/snake-plant">
+                      <img src={pImg} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer" alt={pName} />
+                    </Link>
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Indestructible</span>
+                    <button aria-label="Add to Wishlist" type="button" onClick={() => toggleWishlist(pId)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors cursor-pointer z-10">
+                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: wishlist.includes(pId) ? "'FILL' 1" : "'FILL' 0", color: wishlist.includes(pId) ? 'var(--color-tertiary)' : undefined }}>favorite</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-1.5 mb-1 text-outline">
+                      <span className="material-symbols-outlined text-[15px] text-tertiary">nightlight</span>
+                      <span className="font-body-sm text-[12px]">Low Light</span>
+                      <span className="text-outline-variant">•</span>
+                      <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
+                      <span className="font-body-sm text-[12px]">Bi-weekly</span>
+                    </div>
+                    <h3 className="font-title-md text-title-md text-primary font-bold">{pName}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes Self-Watering Eco-Slate Pot</p>
+                    <div className="mt-auto pt-space-sm flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-price-lg text-price-lg text-primary font-bold">{pPrice}</span>
+                        <span className="font-body-sm text-body-sm text-outline line-through">₹1,299</span>
+                        <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">30% OFF</span>
+                      </div>
+                      {cartItem ? (
+                        <div className="flex items-center justify-between py-1 px-2.5 rounded-lg border border-primary text-primary bg-surface-container-lowest">
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity - 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">remove</span></button>
+                          <span className="font-bold text-xs mx-2">{cartItem.quantity}</span>
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity + 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">add</span></button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => addToCart({ id: pId, name: pName, price: pPrice, image: pImg, botanicalName: pBot })} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Bestseller 3 - ZZ Plant (p8) */}
+            {(() => {
+              const pId = 'p8';
+              const pName = 'Zamioculcas ZZ Plant';
+              const pPrice = '₹1,150';
+              const pImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBkLpHTajLr_AicXBgSftCeqKR3BGaTI_UusSWlTh_AzysodA5lxjI97_CaZcWATMFbsxB7mAxP7Lt2ak7sXwslU5iAzwE_DZVoTuCUpw8RCU0dVB48I1QKl1gHRJh7z70tDuC-q8uwsYRoKHDfKv2hdgnMxBPrAVwPDbVYdckLmuQpq2eFAEVxuYeJYY5EKibaVgQMqLUnEB2MKHuvICtY1YhAp3WtFfBCAdyjzhwKj5fAdcra3EiwtQ';
+              const pBot = 'Zamioculcas zamiifolia';
+              const cartItem = cart.find(i => i.id === pId);
+              return (
+                <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
+                  <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
+                    <Link href="/shop/product/zz-plant">
+                      <img src={pImg} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer" alt={pName} />
+                    </Link>
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Beginner Star</span>
+                    <button aria-label="Add to Wishlist" type="button" onClick={() => toggleWishlist(pId)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors cursor-pointer z-10">
+                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: wishlist.includes(pId) ? "'FILL' 1" : "'FILL' 0", color: wishlist.includes(pId) ? 'var(--color-tertiary)' : undefined }}>favorite</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-1.5 mb-1 text-outline">
+                      <span className="material-symbols-outlined text-[15px] text-tertiary">wb_shade</span>
+                      <span className="font-body-sm text-[12px]">Shade Tolerant</span>
+                      <span className="text-outline-variant">•</span>
+                      <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
+                      <span className="font-body-sm text-[12px]">Rare Water</span>
+                    </div>
+                    <h3 className="font-title-md text-title-md text-[#1b3827] font-bold">{pName}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes Handcrafted Terracotta Saucer</p>
+                    <div className="mt-auto pt-space-sm flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-price-lg text-price-lg text-primary font-bold">{pPrice}</span>
+                        <span className="font-body-sm text-body-sm text-outline line-through">₹1,450</span>
+                        <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">20% OFF</span>
+                      </div>
+                      {cartItem ? (
+                        <div className="flex items-center justify-between py-1 px-2.5 rounded-lg border border-primary text-primary bg-surface-container-lowest">
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity - 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">remove</span></button>
+                          <span className="font-bold text-xs mx-2">{cartItem.quantity}</span>
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity + 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">add</span></button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => addToCart({ id: pId, name: pName, price: pPrice, image: pImg, botanicalName: pBot })} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Bestseller 4 - Ficus Lyrata (p10) */}
+            {(() => {
+              const pId = 'p10';
+              const pName = 'Ficus Lyrata (Fiddle Leaf)';
+              const pPrice = '₹2,299';
+              const pImg = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDYwkoZ-SwTE6cjN7EjoSO5yBfNDxPoHmmaRwhj84VLbxs3GWp0KQz6j8OcVxBjrd6RMfLE3BQHIXdqzuazklc9UBE1vxfmkOeKmsat1H2wRAWWVMJ2IRZN8NpoaDlxAdVGY9aimIRoDs2JfTIfhDPGDjzfThaZN0jcJDk4-cV6ENghLrhK7QZd_ofw8JsmxuCQqHxIRVu61K_tc0uUGNOkEUWrvrqRaNZzREafn9Ps8IVcjQJ_q9_NHA';
+              const pBot = 'Ficus lyrata';
+              const cartItem = cart.find(i => i.id === pId);
+              return (
+                <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
+                  <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
+                    <Link href="/shop/product/ficus-lyrata">
+                      <img src={pImg} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer" alt={pName} />
+                    </Link>
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-tertiary uppercase font-bold">Showstopper</span>
+                    <button aria-label="Add to Wishlist" type="button" onClick={() => toggleWishlist(pId)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors cursor-pointer z-10">
+                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: wishlist.includes(pId) ? "'FILL' 1" : "'FILL' 0", color: wishlist.includes(pId) ? 'var(--color-tertiary)' : undefined }}>favorite</span>
+                    </button>
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-1.5 mb-1 text-outline">
+                      <span className="material-symbols-outlined text-[15px] text-tertiary">wb_sunny</span>
+                      <span className="font-body-sm text-[12px]">Bright Direct</span>
+                      <span className="text-outline-variant">•</span>
+                      <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
+                      <span className="font-body-sm text-[12px]">Moderate</span>
+                    </div>
+                    <h3 className="font-title-md text-title-md text-primary font-bold">{pName}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Mature 3.5-Foot Specimen</p>
+                    <div className="mt-auto pt-space-sm flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-price-lg text-price-lg text-primary font-bold">{pPrice}</span>
+                        <span className="font-body-sm text-body-sm text-outline line-through">₹2,999</span>
+                        <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">23% OFF</span>
+                      </div>
+                      {cartItem ? (
+                        <div className="flex items-center justify-between py-1 px-2.5 rounded-lg border border-primary text-primary bg-surface-container-lowest">
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity - 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">remove</span></button>
+                          <span className="font-bold text-xs mx-2">{cartItem.quantity}</span>
+                          <button onClick={() => updateQuantity(pId, cartItem.quantity + 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">add</span></button>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => addToCart({ id: pId, name: pName, price: pPrice, image: pImg, botanicalName: pBot })} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      </section>
+
+
+{/* SPACES DESIGNED TO BREATHE (ROOM INSPIRATION) */}
       <section className="w-full bg-surface-container-low px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
         <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
           <div className="text-center max-w-2xl mx-auto">
@@ -226,7 +456,7 @@ export default function Home() {
                 <span className="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-wider">Air Circulation</span>
                 <h3 className="font-headline-sm text-headline-sm text-on-primary font-bold mt-1">Balcony Sanctuary</h3>
                 <p className="font-body-sm text-body-sm text-on-primary/80 mt-1">Vibrant, heat-resilient tropical palms and trailing ferns.</p>
-                <Link href="#" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3">
+                <Link href="/shop/by-space?space=Balcony" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3 hover:underline">
                   Explore Setting <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                 </Link>
               </div>
@@ -239,7 +469,7 @@ export default function Home() {
                 <span className="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-wider">Focal Statements</span>
                 <h3 className="font-headline-sm text-headline-sm text-on-primary font-bold mt-1">Living Room Statements</h3>
                 <p className="font-body-sm text-body-sm text-on-primary/80 mt-1">High-impact architectural specimen trees that anchor the room.</p>
-                <Link href="#" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3">
+                <Link href="/shop/by-space?space=Living Room" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3 hover:underline">
                   Explore Setting <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                 </Link>
               </div>
@@ -252,7 +482,7 @@ export default function Home() {
                 <span className="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-wider">Night Oxygen</span>
                 <h3 className="font-headline-sm text-headline-sm text-on-primary font-bold mt-1">Bedroom Serenity</h3>
                 <p className="font-body-sm text-body-sm text-on-primary/80 mt-1">CAM-metabolism plants that release restorative oxygen during night.</p>
-                <Link href="#" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3">
+                <Link href="/shop/by-space?space=Bedroom" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3 hover:underline">
                   Explore Setting <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                 </Link>
               </div>
@@ -265,7 +495,7 @@ export default function Home() {
                 <span className="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-wider">Cognitive Focus</span>
                 <h3 className="font-headline-sm text-headline-sm text-on-primary font-bold mt-1">Workspace Desks</h3>
                 <p className="font-body-sm text-body-sm text-on-primary/80 mt-1">Drought-tolerant, low-maintenance greens tailored for desk productivity.</p>
-                <Link href="#" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3">
+                <Link href="/shop/by-space?space=Table Top" className="inline-flex items-center gap-1 text-tertiary-fixed font-label-md text-label-md font-semibold mt-3 hover:underline">
                   Explore Setting <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                 </Link>
               </div>
@@ -274,157 +504,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ACCLAIMED BESTSELLERS */}
+
+{/* BOTANICAL BUNDLES FOR HOMES */}
       <section className="w-full px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
         <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-space-sm">
             <div>
-              <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Acclaimed Botanicals</span>
+              <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Effortless Green Sanctuary</span>
               <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
-                Our Acclaimed Bestsellers
+                Complete Botanical Bundles
               </h2>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              <button type="button" className="px-4 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-label-md shrink-0">All Bestsellers</button>
-              <button type="button" className="px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors shrink-0">Low Light</button>
-              <button type="button" className="px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors shrink-0">Air Purifying</button>
-              <button type="button" className="px-4 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant font-label-md text-label-md transition-colors shrink-0">Pet Friendly</button>
+            <div className="flex items-center gap-4">
+              <Link href="/shop/bundles/custom" className="inline-flex items-center gap-1 text-tertiary font-label-md text-label-md uppercase tracking-wider font-bold hover:text-primary transition-colors">Create your own bundle <span className="material-symbols-outlined text-[18px]">add_circle</span></Link>
+              <Link href="/shop/bundles" className="inline-flex items-center gap-1 text-secondary font-label-md text-label-md uppercase tracking-wider font-bold hover:text-primary transition-colors">See more <span className="material-symbols-outlined text-[18px]">arrow_forward</span></Link>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
-            {/* Bestseller 1 */}
-            <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
-              <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcUXX4iTR8DmRnOsm3zDdwL6-CpAIAkl68G30W_VZEI4r8RlNcuIlf_1MYPg_EpcoCnHsLt_neFc-f2ZP2TQhPeEaoX81S6TOWik_KqTO1rs7fRyrGLupSbkdEd7liyQt8HHdedQRjck7c1P43BS1dqQH_T6yb2KochZHJHheGQQTAr2vXV9YYpDHLdpdW9AJFI0Gbd4ksrrRr--lfGmX64JIJKBow6PicEX1CJi32RhShPQNh8nn89w" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Monstera Deliciosa" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Air Purifier</span>
-                <button aria-label="Add to Wishlist" type="button" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">favorite</span>
-                </button>
-              </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex items-center gap-1.5 mb-1 text-outline">
-                  <span className="material-symbols-outlined text-[15px] text-tertiary">wb_sunny</span>
-                  <span className="font-body-sm text-[12px]">Indirect Sun</span>
-                  <span className="text-outline-variant">•</span>
-                  <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
-                  <span className="font-body-sm text-[12px]">Weekly</span>
-                </div>
-                <h3 className="font-title-md text-title-md text-primary font-bold">Monstera Deliciosa</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes 8" Off-White Ceramic Planter</p>
-                <div className="mt-auto pt-space-sm flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-price-lg text-price-lg text-primary font-bold">₹1,499</span>
-                    <span className="font-body-sm text-body-sm text-outline line-through">₹1,999</span>
-                    <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">25% OFF</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+            {bundles.map((bundle) => {
+              const bundleCartItem = cart.find(i => i.id === bundle.id);
+              return (
+                <div key={bundle.id} className="rounded-2xl bg-surface-container-lowest p-space-md shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="aspect-[16/10] rounded-xl overflow-hidden bg-surface-container mb-space-md">
+                      <Link href={`/shop/product/${bundle.id}`}>
+                        <img src={bundle.image || '/hero_full_bg.png'} className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-500" alt={bundle.name} />
+                      </Link>
+                    </div>
+                    <h3 className="font-headline-sm text-headline-sm text-primary font-bold mt-1">{bundle.name}</h3>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-2 line-clamp-3">
+                      {bundle.description}
+                    </p>
                   </div>
-                  <button type="button" onClick={() => addToCartMock('Monstera Deliciosa', '₹1,499')} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bestseller 2 */}
-            <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
-              <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCn4GgGKEAYjjyew-ClUlItulF64x2RDpzlZIqYXGdfTS9vK_2qr2csN0dGnzwFd8RRQxa2c9gBuqQRmC86IWuifzIwg6YFuxyevKmbjaGs4QiLAd1EzmU8nJ7llDkThlOavi9zEo7IX_IjmLlo3RtmLsgD0X43EUlKpYpg_cfyuLa4Ue5orCly55C3bqYOBB-CsFogte3VjMDvWMsnkpjIQrUBdB8_wWxPLB4piAQMT0VWIMt19NmxQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Snake Plant Laurentii" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Indestructible</span>
-                <button aria-label="Add to Wishlist" type="button" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">favorite</span>
-                </button>
-              </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex items-center gap-1.5 mb-1 text-outline">
-                  <span className="material-symbols-outlined text-[15px] text-tertiary">nightlight</span>
-                  <span className="font-body-sm text-[12px]">Low Light</span>
-                  <span className="text-outline-variant">•</span>
-                  <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
-                  <span className="font-body-sm text-[12px]">Bi-weekly</span>
-                </div>
-                <h3 className="font-title-md text-title-md text-primary font-bold">Snake Plant Laurentii</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes Self-Watering Eco-Slate Pot</p>
-                <div className="mt-auto pt-space-sm flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-price-lg text-price-lg text-primary font-bold">₹899</span>
-                    <span className="font-body-sm text-body-sm text-outline line-through">₹1,299</span>
-                    <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">30% OFF</span>
+                  <div className="mt-space-md pt-space-sm border-t border-outline-variant/30 flex items-center justify-between">
+                    <div>
+                      <span className="font-price-lg text-price-lg text-primary font-bold">₹{bundle.price}</span>
+                    </div>
+                    {bundleCartItem ? (
+                      <div className="flex items-center justify-between py-1 px-3 rounded-lg border border-primary text-primary bg-surface-container-lowest min-w-[110px]">
+                        <button onClick={() => updateQuantity(bundle.id, bundleCartItem.quantity - 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">remove</span></button>
+                        <span className="font-bold text-xs mx-2">{bundleCartItem.quantity}</span>
+                        <button onClick={() => updateQuantity(bundle.id, bundleCartItem.quantity + 1)} className="p-0.5 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[16px]">add</span></button>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => addToCart({ id: bundle.id, name: bundle.name, price: `₹${bundle.price}`, image: bundle.image || '/hero_full_bg.png', botanicalName: 'Curated Botanical Bundle' })} className="px-3.5 py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-sm text-label-sm font-bold uppercase transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                        <span>Add to Cart</span>
+                      </button>
+                    )}
                   </div>
-                  <button type="button" onClick={() => addToCartMock('Snake Plant Laurentii', '₹899')} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
-                  </button>
                 </div>
-              </div>
-            </div>
-
-            {/* Bestseller 3 */}
-            <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
-              <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkLpHTajLr_AicXBgSftCeqKR3BGaTI_UusSWlTh_AzysodA5lxjI97_CaZcWATMFbsxB7mAxP7Lt2ak7sXwslU5iAzwE_DZVoTuCUpw8RCU0dVB48I1QKl1gHRJh7z70tDuC-q8uwsYRoKHDfKv2hdgnMxBPrAVwPDbVYdckLmuQpq2eFAEVxuYeJYY5EKibaVgQMqLUnEB2MKHuvICtY1YhAp3WtFfBCAdyjzhwKj5fAdcra3EiwtQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Zamioculcas ZZ Plant" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-secondary uppercase font-bold">Beginner Star</span>
-                <button aria-label="Add to Wishlist" type="button" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">favorite</span>
-                </button>
-              </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex items-center gap-1.5 mb-1 text-outline">
-                  <span className="material-symbols-outlined text-[15px] text-tertiary">wb_shade</span>
-                  <span className="font-body-sm text-[12px]">Shade Tolerant</span>
-                  <span className="text-outline-variant">•</span>
-                  <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
-                  <span className="font-body-sm text-[12px]">Rare Water</span>
-                </div>
-                <h3 className="font-title-md text-title-md text-primary font-bold">Zamioculcas ZZ Plant</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Includes Handcrafted Terracotta Saucer</p>
-                <div className="mt-auto pt-space-sm flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-price-lg text-price-lg text-primary font-bold">₹1,150</span>
-                    <span className="font-body-sm text-body-sm text-outline line-through">₹1,450</span>
-                    <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">20% OFF</span>
-                  </div>
-                  <button type="button" onClick={() => addToCartMock('Zamioculcas ZZ Plant', '₹1,150')} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bestseller 4 */}
-            <div className="flex flex-col rounded-2xl bg-surface-container-lowest shadow-sm hover:shadow-md transition-all duration-300 p-space-sm relative group">
-              <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface-container mb-space-sm">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYwkoZ-SwTE6cjN7EjoSO5yBfNDxPoHmmaRwhj84VLbxs3GWp0KQz6j8OcVxBjrd6RMfLE3BQHIXdqzuazklc9UBE1vxfmkOeKmsat1H2wRAWWVMJ2IRZN8NpoaDlxAdVGY9aimIRoDs2JfTIfhDPGDjzfThaZN0jcJDk4-cV6ENghLrhK7QZd_ofw8JsmxuCQqHxIRVu61K_tc0uUGNOkEUWrvrqRaNZzREafn9Ps8IVcjQJ_q9_NHA" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Ficus Lyrata" />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-tertiary uppercase font-bold">Showstopper</span>
-                <button aria-label="Add to Wishlist" type="button" className="absolute top-3 right-3 w-8 h-8 rounded-full bg-surface-container-lowest/90 flex items-center justify-center text-outline hover:text-tertiary transition-colors">
-                  <span className="material-symbols-outlined text-[18px]">favorite</span>
-                </button>
-              </div>
-              <div className="flex flex-col flex-1">
-                <div className="flex items-center gap-1.5 mb-1 text-outline">
-                  <span className="material-symbols-outlined text-[15px] text-tertiary">wb_sunny</span>
-                  <span className="font-body-sm text-[12px]">Bright Direct</span>
-                  <span className="text-outline-variant">•</span>
-                  <span className="material-symbols-outlined text-[15px] text-secondary">water_drop</span>
-                  <span className="font-body-sm text-[12px]">Moderate</span>
-                </div>
-                <h3 className="font-title-md text-title-md text-primary font-bold">Ficus Lyrata (Fiddle Leaf)</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Mature 3.5-Foot Specimen</p>
-                <div className="mt-auto pt-space-sm flex items-center justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-price-lg text-price-lg text-primary font-bold">₹2,299</span>
-                    <span className="font-body-sm text-body-sm text-outline line-through">₹2,999</span>
-                    <span className="font-label-sm text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-fixed font-bold">23% OFF</span>
-                  </div>
-                  <button type="button" onClick={() => addToCartMock('Ficus Lyrata (Fiddle Leaf)', '₹2,299')} className="w-9 h-9 rounded-lg bg-primary hover:bg-secondary text-on-primary flex items-center justify-center transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">add_shopping_cart</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* 60-SECOND PLANT FINDER CONSULTATION BANNER */}
+
+                  {/* 60-SECOND PLANT FINDER CONSULTATION BANNER */}
       <section className="w-full px-gutter-mobile lg:px-margin py-space-md">
         <div className="max-w-7xl mx-auto rounded-3xl bg-primary-container text-on-primary p-space-lg lg:p-space-xl relative overflow-hidden shadow-xl">
           <div className="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none"></div>
@@ -465,237 +603,58 @@ export default function Home() {
         </div>
       </section>
 
-      {/* BOTANICAL BUNDLES FOR HOMES */}
-      <section className="w-full px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
-        <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
-          <div className="text-center max-w-2xl mx-auto">
-            <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Effortless Green Sanctuary</span>
-            <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
-              Complete Botanical Bundles
-            </h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-              Carefully paired trios of harmonized plants and luxury ceramics designed to curate an instant designer aesthetic.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            {/* Bundle 1 */}
-            <div className="rounded-2xl bg-surface-container-lowest p-space-md shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="aspect-[16/10] rounded-xl overflow-hidden bg-surface-container mb-space-md">
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVhem-5D-cVMOxvsMUKtI0Rw3w1dYwzS6MP8sM5szq4h2Spteh5PDoXn4w3R8ui6oXQGttUxwTubREI1dKx0f_kwH_YzYEVKMiOoFfdETKV0hEjXClOK_352UOU_ABVFu4O7FgQ2-MsV-fVv0EwAYzDGnhPb9x4W4SRA_Ks-F0VfE2PUcAkP7a8iaINv1RwScXHJpVNlkRb8fklS0-Epw3umc2NvLZahDWDOhlPKy3qVvTB11JIMmjOg" className="w-full h-full object-cover" alt="Workstation Trio" />
-                </div>
-                <span className="font-label-sm text-label-sm text-secondary font-bold uppercase">Workstation Trio</span>
-                <h3 className="font-headline-sm text-headline-sm text-primary font-bold mt-1">Executive Desk Sanctuary</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                  Three hardy desktop specimens (Jade, Sansevieria Dwarf, and Peperomia) designed to absorb computer glare and purify workspace air.
-                </p>
-              </div>
-              <div className="mt-space-md pt-space-sm border-t border-outline-variant/30 flex items-center justify-between">
-                <div>
-                  <span className="font-price-lg text-price-lg text-primary font-bold">₹2,199</span>
-                  <span className="font-body-sm text-body-sm text-outline line-through ml-1.5">₹2,899</span>
-                </div>
-                <button type="button" onClick={() => addToCartMock('Executive Desk Sanctuary', '₹2,199')} className="px-4 py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-sm text-label-sm font-bold uppercase transition-colors">
-                  Add Bundle
-                </button>
-              </div>
-            </div>
-
-            {/* Bundle 2 */}
-            <div className="rounded-2xl bg-surface-container-lowest p-space-md shadow-sm flex flex-col justify-between relative ring-2 ring-tertiary-container">
-              <div className="absolute -top-3 right-6 px-3 py-0.5 rounded-full bg-tertiary-container text-on-tertiary font-label-sm text-[11px] font-bold uppercase">
-                Most Popular
-              </div>
-              <div>
-                <div className="aspect-[16/10] rounded-xl overflow-hidden bg-surface-container mb-space-md">
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7KWZcvWky02L4YhPcJ3MdJuC7TqxZ3JYhAvNv5mCzWw6FH_UeGXXi1A9sjL3VdSShEpUfhMC6bMwNTmG6fDwyxs1_OGdiDDjSR9FIeEnlNd4O4jaShlijjcN0JS6iRosU68od8KDYM6-eZfwXXi-aD4-Pt0-GTcpspzM7RH53_jTeNquSAi_L9oKE3U_1s1kLD4eAwVOJY5dNAZgL9qg3ZKg2Hu83KwNoUyu-dZ6rIyXqZOwO0macoA" className="w-full h-full object-cover" alt="Living Room Statement" />
-                </div>
-                <span className="font-label-sm text-label-sm text-secondary font-bold uppercase">Great Rooms</span>
-                <h3 className="font-headline-sm text-headline-sm text-primary font-bold mt-1">Living Room Statement</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                  Large Monstera Deliciosa, 4ft Areca Palm, and ZZ specimen. Paired with our flagship handcrafted matte stone pots with saucers.
-                </p>
-              </div>
-              <div className="mt-space-md pt-space-sm border-t border-outline-variant/30 flex items-center justify-between">
-                <div>
-                  <span className="font-price-lg text-price-lg text-primary font-bold">₹4,499</span>
-                  <span className="font-body-sm text-body-sm text-outline line-through ml-1.5">₹5,999</span>
-                </div>
-                <button type="button" onClick={() => addToCartMock('Living Room Statement', '₹4,499')} className="px-4 py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-sm text-label-sm font-bold uppercase transition-colors">
-                  Add Bundle
-                </button>
-              </div>
-            </div>
-
-            {/* Bundle 3 */}
-            <div className="rounded-2xl bg-surface-container-lowest p-space-md shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="aspect-[16/10] rounded-xl overflow-hidden bg-surface-container mb-space-md">
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9YMwFqf7yIJrqNa6a6MlA-SNeqSLdFqIgVD7yZ4MjUojv5GHPRaQbivyeMEnp_ct6w9SgNli2D8OX88VBeSznb7dkH1pFlV9nv5HcJJbcQPLJnVhdm_9EQQa6P4p-onZucV2MaZwPqrHn8AFL3eMqXbb4rg9X686o225Zcttmmg7-TibyKHAI-E3siK5tyt0-ijQGPdBwu4xL61hD4Az-iVIUVnE-5Q5p3k834Rl7Nr4QYd0xi1BOtQ" className="w-full h-full object-cover" alt="Beginner's Green Sanctuary" />
-                </div>
-                <span className="font-label-sm text-label-sm text-secondary font-bold uppercase">Unkillable</span>
-                <h3 className="font-headline-sm text-headline-sm text-primary font-bold mt-1">Beginner's Green Sanctuary</h3>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-                  Zero stress for new plant parents. Forgiving foliage that tolerates uneven watering, dry AC conditions, and indirect lighting.
-                </p>
-              </div>
-              <div className="mt-space-md pt-space-sm border-t border-outline-variant/30 flex items-center justify-between">
-                <div>
-                  <span className="font-price-lg text-price-lg text-primary font-bold">₹1,799</span>
-                  <span className="font-body-sm text-body-sm text-outline line-through ml-1.5">₹2,399</span>
-                </div>
-                <button type="button" onClick={() => addToCartMock('Beginner’s Green Sanctuary', '₹1,799')} className="px-4 py-2 rounded-lg bg-primary hover:bg-secondary text-on-primary font-label-sm text-label-sm font-bold uppercase transition-colors">
-                  Add Bundle
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* WHY PLANTINUM */}
-      <section className="w-full bg-surface-container-low px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
-        <div className="max-w-7xl mx-auto flex flex-col gap-space-xl">
-          <div className="text-center max-w-2xl mx-auto">
-            <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">The Plantinum Standard</span>
-            <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
-              Why Discerning Gardeners Choose Us
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            <div className="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-sm">
-              <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-2xl">inventory_2</span>
-              </div>
-              <h3 className="font-title-md text-title-md text-primary font-bold">Triple-Cushion Transit Pods</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                Proprietary ventilated honeycomb shells lock root balls firmly in place. Not a single gram of potting mix spills during pan-India transit.
-              </p>
-            </div>
-            <div className="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-sm">
-              <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-2xl">health_and_safety</span>
-              </div>
-              <h3 className="font-title-md text-title-md text-primary font-bold">7-Day Healthy Arrival Warranty</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                If your plant arrives with wilting foliage or damaged stems, send a single WhatsApp photo. We issue an instant, no-questions-asked greenhouse replacement.
-              </p>
-            </div>
-            <div className="p-space-lg rounded-2xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-sm">
-              <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-2xl">support_agent</span>
-              </div>
-              <h3 className="font-title-md text-title-md text-primary font-bold">Free Lifetime Plant Doctor</h3>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                Every order grants lifetime direct WhatsApp access to certified agronomists for diagnostic leaf scans, seasonal feeding, and repotting advice.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+            
 
       {/* BOTANICAL JOURNAL */}
       <section className="w-full px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
         <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-space-sm">
             <div>
-              <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Botanical Wisdom</span>
+              <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">Cultivation &amp; Care</span>
               <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
                 The Botanical Journal
               </h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-2 max-w-xl">
+                Master care guides, plant lore, and tips on why certain plants bring luck and prosperity to your home.
+              </p>
             </div>
-            <Link href="#" className="inline-flex items-center gap-1 text-secondary font-label-md text-label-md uppercase tracking-wider font-bold hover:text-primary transition-colors">
-              Read All Journal Editions <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter mt-space-sm">
+            <Link href="/journal/plant-care" className="group flex flex-col gap-space-sm cursor-pointer">
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+                <img src="https://images.pexels.com/photos/6208087/pexels-photo-6208087.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="How to take care of indoor plants" />
+              </div>
+              <div>
+                <span className="font-label-sm text-[11px] text-tertiary uppercase font-bold tracking-wider">Masterclass</span>
+                <h3 className="font-title-lg text-title-lg text-primary font-bold mt-1 group-hover:text-secondary transition-colors">How to Take Care of Your Indoor Plants</h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">Learn the essential secrets to watering, light exposure, and repotting for a thriving indoor jungle.</p>
+              </div>
+            </Link>
+            <Link href="/journal/lucky-plants" className="group flex flex-col gap-space-sm cursor-pointer">
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+                <img src="https://images.pexels.com/photos/7352303/pexels-photo-7352303.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Lucky Plants" />
+              </div>
+              <div>
+                <span className="font-label-sm text-[11px] text-tertiary uppercase font-bold tracking-wider">Plant Lore</span>
+                <h3 className="font-title-lg text-title-lg text-primary font-bold mt-1 group-hover:text-secondary transition-colors">Why these 5 Plants Bring Luck to Your Home</h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">Discover the ancient botanical secrets behind Money Plants, Jade, and other auspicious greenery.</p>
+              </div>
+            </Link>
+            <Link href="/journal/indoor-benefits" className="group flex flex-col gap-space-sm cursor-pointer">
+              <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden bg-surface-container shadow-sm">
+                <img src="https://images.pexels.com/photos/3126442/pexels-photo-3126442.jpeg?auto=compress&cs=tinysrgb&h=650&w=940" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Benefits" />
+              </div>
+              <div>
+                <span className="font-label-sm text-[11px] text-tertiary uppercase font-bold tracking-wider">Wellness</span>
+                <h3 className="font-title-lg text-title-lg text-primary font-bold mt-1 group-hover:text-secondary transition-colors">Top 10 Health Benefits of Living Botanicals</h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">From air purification to stress reduction, here is why a green space is a healthy space.</p>
+              </div>
             </Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            <article className="flex flex-col group">
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-surface-container mb-space-sm relative">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHuLmrSjUSLsRQKji-F3ZijMkCsRc4wo4REu5w-XUvBQimxJ3MWdB7wEXzOIfkAY6nvTXup0PnKosLT3nyZNchGkharZ70j02iBEZQXswYjj5P3YyRzZtMup_PqCqjCbAz_b-IZN80nU51n_rtknGFVPZc2fomDLEiIP-telyGZh9RYg7o68i-h3WSpi4kk_DfMYV9NRUiuoJ7YRtO8DnBbkwhE5_H5BLBEW1MZ2BBe6_eDrNQmMMUwQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Monsoon Watering" />
-                <span className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-primary uppercase font-bold">Care Protocol</span>
-              </div>
-              <span className="font-body-sm text-[12px] text-outline">June 12, 2025 • 4 min read</span>
-              <h3 className="font-headline-sm text-[18px] text-primary font-bold mt-1 group-hover:text-secondary transition-colors">
-                The Monsoon Watering Pivot: Why Less is More for Indoor Aroids
-              </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">
-                Elevated atmospheric humidity changes root absorption rates. Learn how to calibrate soil drainage before root rot develops.
-              </p>
-            </article>
-
-            <article className="flex flex-col group">
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-surface-container mb-space-sm relative">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwlcDXwI5EDshtIz3ccMdexXjEjhRNR489HK3B1iR5HPt04J-N2VjeHkOaSsKjgO1cQF4ZgEQglwFU7300tjU7dssWB2cFr9a8-JSuZix1dXI5-viIg5FzMIb9vIt3_e0gp8nVP7yOdmXAwfrK0oUCkLRIdtm2Fh_Dwh87QT6DKhsVHixDhtuHTyrLDPfalB4D5WzS_ome_jZ0HtoDr5kEsYNOdA-52Oy_Rj_-sxEMpre-BSy9YhR5zQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Architectural Greenery" />
-                <span className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-primary uppercase font-bold">Styling</span>
-              </div>
-              <span className="font-body-sm text-[12px] text-outline">May 28, 2025 • 6 min read</span>
-              <h3 className="font-headline-sm text-[18px] text-primary font-bold mt-1 group-hover:text-secondary transition-colors">
-                Architectural Greenery: Harmonizing Ceramic Textures with Teak &amp; Brass
-              </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">
-                Interior tips from our landscape designers on contrasting organic leaf contours against linear urban masonry.
-              </p>
-            </article>
-
-            <article className="flex flex-col group">
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden bg-surface-container mb-space-sm relative">
-                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_xrbbdj2Fwlwyyt7OYe0FJeEt6YmvmPNLFUsuH_VNjhpcEEcED0wm7yt2PD0T6YRMG8ffsxJaugwlqRfB1goOSNQC4QlMkm6afH7VSNLkITDyOYfgFyT1wqewUn2yDqbl2wFkYjplYVwrEX5ZaM7J7IDM57-SzyMzX_kpPpzSuZ7ciZwnlwPDCJ5wtI9YeqlHaL61SoR6kDGMABpD0-hThSYBYRWlDfayKiR5Ntl6LToP_0VsFMCJ6w" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Soil Science" />
-                <span className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 font-label-sm text-label-sm text-primary uppercase font-bold">Soil Science</span>
-              </div>
-              <span className="font-body-sm text-[12px] text-outline">May 14, 2025 • 5 min read</span>
-              <h3 className="font-headline-sm text-[18px] text-primary font-bold mt-1 group-hover:text-secondary transition-colors">
-                Decoding Chunky Aroid Mix: The Chemistry of Oxygenated Roots
-              </h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 line-clamp-2">
-                Why traditional garden soil suffocates tropical epiphyte root structures in indoor Indian settings.
-              </p>
-            </article>
-          </div>
         </div>
       </section>
 
-      {/* COMMUNITY SANCTUARY GALLERY */}
-      <section className="w-full bg-surface-container-low px-gutter-mobile lg:px-margin py-space-xl lg:py-space-2xl">
-        <div className="max-w-7xl mx-auto flex flex-col gap-space-lg">
-          <div className="text-center max-w-xl mx-auto">
-            <span className="font-label-sm text-label-sm text-tertiary uppercase tracking-widest font-bold">#PlantinumHomes</span>
-            <h2 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-primary font-bold tracking-tight mt-1">
-              Lush Sanctuaries Across India
-            </h2>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Real customer spaces styled with Plantinum botanicals. Tag @plantinum.in on Instagram to be featured.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container relative group">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYkNEATS5uVJEVGDkRYG7f1zjTcNZrYGFS0319PUArC17900pD7TxMt5FlkMSyB7HvVcpod7zpA6BnZwptPDFWDT-kLS6hZ3h35hCRrDCLDX5RXXeGycE87G4W5LqEgf5MH6Vym2mnn6Yqdp3FBzxnejaTlRGEyMuB6gIDZRh-ACWYKR34klsfBwROIYRNnOVZHFWYm9SCOkYyNx0LEfhD4zaSsNEOJyiDhpDIEZRiVB9VRH5a5-FD7A" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Customer home 1" />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-on-primary font-label-md text-label-md">
-                @ananya.living
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container relative group">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDN01r4gVBd-Bnv58yigyq1brfzu3p1twxGdO1qgc33q9CUC3ffgWzfIkeLcLHNNbJnUmJ-pdZGonvisKBChNYlng1bpUqZS1Mj0fKqhuQI34sw6ZS5gN9qQBOIPmP5jpxyhuI_u34XXmw2ejslJqKCEtKEmEWWkfctmM7Wr348ytb8mBpHij68k0pgzqLNShT1-nfdMkTlduqeLbOQLWeWZutcN5siRIz1D2IVFHaIvloLkY3B8P5RA" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Customer home 2" />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-on-primary font-label-md text-label-md">
-                @vikram_arch
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container relative group">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBduE_ZewjojnAModjQnKeeRPlRtzWC_biLFIu_euXum8UIXt3KaQY9e1-ZgAbuppOATHSPCmQDXrGdk3ya9qKKKotNkHJYi2EgGlYhmEOBkGDLLjkyptYpD8uxP5RkfviwMj9kCK6xc_dZSX4SZ7Ez_Qa6I7wsbZqTn3R-bQorZiUpGC5RKK1XLMnbzaCYLySVCr37Cf4NyksmpxF3AtVww8vCugfcRktrnNUHBDiqw5qv98-Q6Hp7Zw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Customer home 3" />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-on-primary font-label-md text-label-md">
-                @meera_greenery
-              </div>
-            </div>
-            <div className="aspect-square rounded-2xl overflow-hidden bg-surface-container relative group">
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzEBzo07xgDxsOTKc16id_nOkpAtfuC7wgeks36cpYjYUngg1D5NIvQsi5ZGyD9TkdqKuc3Q4hQBru80eE9Df9pvVz9xWIDZOTxvtjCgEx4o_z_OXPV8mkcI_h5c87HnJr49MyIVgX2lV5oPiKUBpSZeZcsL7D9Jlj7LURJRuzgRzjBNxpRALZCcZ1qZVagw5Pehd2K20dBsx22taYN_rrC03Ai2Gz0Bh9Ff5BxoSnNtu5ogJTxidKLQ" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Customer home 4" />
-              <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-on-primary font-label-md text-label-md">
-                @rohan_studio
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
     </>
   );
 }

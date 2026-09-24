@@ -1,19 +1,42 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { products } from '@/data/products';
 
 type SpaceCategory = 'Bedroom' | 'Table Top' | 'Living Room' | 'Balcony' | 'Office Cubicle' | 'Shop Desk';
 
-export default function ShopBySpacePage() {
+function SpaceContent() {
+  const searchParams = useSearchParams();
+  const spaceParam = searchParams.get('space');
   const [activeSpace, setActiveSpace] = useState<SpaceCategory>('Bedroom');
+  const [searchQuery, setSearchQuery] = useState('');
   const { cart, addToCart, updateQuantity, wishlist, toggleWishlist } = useStore();
+
+  useEffect(() => {
+    if (spaceParam) {
+      const lower = spaceParam.toLowerCase();
+      if (lower.includes('balcony')) setActiveSpace('Balcony');
+      else if (lower.includes('living')) setActiveSpace('Living Room');
+      else if (lower.includes('bedroom')) setActiveSpace('Bedroom');
+      else if (lower.includes('table') || lower.includes('desk') || lower.includes('workspace')) setActiveSpace('Table Top');
+      else if (lower.includes('office') || lower.includes('cubicle')) setActiveSpace('Office Cubicle');
+      else if (lower.includes('shop')) setActiveSpace('Shop Desk');
+    }
+  }, [spaceParam]);
 
   // Filter logic based on the mock data attributes
   const filteredProducts = products.filter(p => {
     if (p.category === 'Care & Soil') return false;
+    
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      if (!p.name.toLowerCase().includes(q) && !p.botanicalName.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
     
     switch (activeSpace) {
       case 'Bedroom':
@@ -44,11 +67,32 @@ export default function ShopBySpacePage() {
           <span className="text-primary font-medium">By Space</span>
         </nav>
         
-        <div className="text-center max-w-2xl mx-auto mb-space-2xl">
+        <div className="text-center max-w-2xl mx-auto mb-6">
           <h1 className="font-headline-lg text-headline-lg text-primary tracking-tight">Curate Your Sanctuary</h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-2">
             Select a room to discover botanicals perfectly suited for its unique lighting, humidity, and aesthetic needs.
           </p>
+
+          {/* Mobile & Desktop Search Bar */}
+          <div className="relative max-w-md mx-auto mt-4">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-base pointer-events-none">search</span>
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search plants by name in this space..." 
+              className="w-full pl-9 pr-8 py-2 text-xs rounded-xl bg-surface-container-lowest border border-stone-300 text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+            />
+            {searchQuery && (
+              <button 
+                type="button" 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-error cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Space Tabs */}
@@ -143,13 +187,13 @@ export default function ShopBySpacePage() {
                   >
                     <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: wishlist.includes(product.id) ? "'FILL' 1" : "'FILL' 0", color: wishlist.includes(product.id) ? 'var(--color-tertiary)' : undefined }}>favorite</span>
                   </button>
-                  <Link href={`/shop/indoor-plants/${product.id}`} className="w-full h-full block">
+                  <Link href={`/shop/product/${product.id}`} className="w-full h-full block">
                     <img src={product.image} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" alt={product.name} />
                   </Link>
                 </div>
                 <div className="p-3.5 flex-1 flex flex-col justify-between">
                   <div>
-                    <Link href={`/shop/indoor-plants/${product.id}`}>
+                    <Link href={`/shop/product/${product.id}`}>
                       <h3 className="font-title-md text-[16px] text-primary font-bold group-hover:text-secondary transition-colors line-clamp-1">{product.name}</h3>
                     </Link>
                     <p className="text-xs text-on-surface-variant italic mb-2">{product.botanicalName}</p>
@@ -165,7 +209,7 @@ export default function ShopBySpacePage() {
                         <button onClick={() => updateQuantity(product.id, cartItem.quantity + 1)} className="p-1 hover:text-secondary cursor-pointer"><span className="material-symbols-outlined text-[18px]">add</span></button>
                       </div>
                     ) : (
-                      <button type="button" onClick={() => addToCart({ id: product.id, name: product.name, price: `₹${product.price}` })} className="w-full py-2 px-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                      <button type="button" onClick={() => addToCart({ id: product.id, name: product.name, price: `₹${product.price}`, image: product.image, botanicalName: product.botanicalName })} className="w-full py-2 px-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-secondary transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
                         <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
                         <span>Add to Cart</span>
                       </button>
@@ -183,5 +227,13 @@ export default function ShopBySpacePage() {
         </div>
       </section>
     </>
+  );
+}
+
+export default function ShopBySpacePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface p-12 text-center text-primary font-bold">Loading Space Sanctuaries...</div>}>
+      <SpaceContent />
+    </Suspense>
   );
 }

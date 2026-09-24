@@ -6,6 +6,11 @@ import { StoreProvider } from "@/context/StoreContext";
 export const metadata: Metadata = {
   title: "Plantinum - Where Nature Meets Luxury",
   description: "Hand-Grown Atelier Greenery. Bring Nature Into Your Living Sanctuary.",
+  icons: {
+    icon: "/logo_emblem.jpg",
+    shortcut: "/logo_emblem.jpg",
+    apple: "/logo_emblem.jpg",
+  }
 };
 
 export default function RootLayout({
@@ -16,6 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/logo_emblem.jpg" type="image/jpeg" />
+        <link rel="shortcut icon" href="/logo_emblem.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/logo_emblem.jpg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

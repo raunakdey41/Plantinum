@@ -1,132 +1,198 @@
 "use client";
 
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export default function Footer() {
   const pathname = usePathname();
+  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   if (pathname.startsWith('/admin')) {
     return null;
   }
 
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsShopDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <>
-      <footer className="w-full bg-surface-container-low text-on-surface mt-space-2xl">
-        <div className="bg-primary-container text-on-primary py-space-xl px-gutter-mobile lg:px-margin">
-          <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
-            <span className="material-symbols-outlined text-tertiary-fixed text-4xl mb-2">local_florist</span>
-            <h3 className="font-headline-md text-headline-md text-on-primary mb-space-xs">Join the Plantinum Circle</h3>
-            <p className="font-body-md text-body-md text-on-primary-container max-w-xl mb-space-lg">Cultivate a greener sanctuary. Receive curated plant guides, seasonal repotting calendars &amp; private collection botanical access.</p>
-            <form className="flex flex-col sm:flex-row w-full max-w-md gap-2" suppressHydrationWarning>
-              <input type="email" placeholder="Enter your personal email..." className="flex-1 px-4 py-3 rounded-lg bg-surface-container-lowest text-on-surface text-body-sm font-body-sm placeholder:text-outline focus:outline-none" suppressHydrationWarning />
-              <button type="button" className="px-6 py-3 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:bg-secondary-fixed hover:text-on-secondary-fixed transition-colors font-bold uppercase tracking-wider">Subscribe</button>
-            </form>
-            <p className="text-label-sm font-label-sm text-on-primary-container/80 mt-space-sm">Zero spam. Handcrafted botanical wisdom directly to your inbox.</p>
-          </div>
-        </div>
-        <div className="w-full px-gutter-mobile lg:px-margin py-space-xl grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-y-space-xl gap-x-gutter">
-          <div className="flex flex-col gap-space-sm">
-            <h4 className="font-title-md text-title-md text-primary font-bold tracking-tight">Shop Botanicals</h4>
-            <ul className="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
-              <li className="hover:text-primary transition-colors"><Link href="/shop/indoor-plants">Indoor Plants</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Outdoor Flowering</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Rare Aroid Collection</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Desk &amp; Table Greens</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Pet-Safe Sanctuaries</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Bonsai &amp; Ficus</Link></li>
-            </ul>
-          </div>
-          <div className="flex flex-col gap-space-sm">
-            <h4 className="font-title-md text-title-md text-primary font-bold tracking-tight">Planters &amp; Styling</h4>
-            <ul className="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
-              <li className="hover:text-primary transition-colors"><Link href="#">Italian Ceramic</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Self-Watering Pots</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Handcrafted Brass</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Minimalist Fiberstone</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Wall &amp; Railing Planters</Link></li>
-            </ul>
-          </div>
-          <div className="flex flex-col gap-space-sm">
-            <h4 className="font-title-md text-title-md text-primary font-bold tracking-tight">Plant Health &amp; Care</h4>
-            <ul className="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
-              <li className="hover:text-primary transition-colors"><Link href="#">Organic Soil Blends</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Micro-Nutrient Elixirs</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Leaf Tonics &amp; Shiners</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Moisture &amp; pH Meters</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Repotting Accessories</Link></li>
-            </ul>
-          </div>
-          <div className="flex flex-col gap-space-sm">
-            <h4 className="font-title-md text-title-md text-primary font-bold tracking-tight">Plantinum Experience</h4>
-            <ul className="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
-              <li className="hover:text-primary transition-colors"><Link href="/">About Our Greenhouses</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="#">Plant Doctor Consultation</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Corporate Green Gifting</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Sustainable Packaging</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Garden &amp; Terrace Styling</Link></li>
-            </ul>
-          </div>
-          <div className="flex flex-col gap-space-sm col-span-2 sm:col-span-1">
-            <h4 className="font-title-md text-title-md text-primary font-bold tracking-tight">Customer Care</h4>
-            <ul className="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
-              <li className="hover:text-primary transition-colors"><Link href="#">Track My Consignment</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Pan-India Delivery Policy</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">7-Day Health Guarantee</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Returns &amp; Replacements</Link></li>
-              <li className="hover:text-primary transition-colors"><Link href="/">Frequently Asked Questions</Link></li>
-            </ul>
-          </div>
-        </div>
-        <div className="hidden md:block w-full py-space-md bg-surface-container overflow-hidden">
-          <style>{`
-            @keyframes marquee {
-              0% { transform: translateX(0%); }
-              100% { transform: translateX(-50%); }
-            }
-            .animate-marquee {
-              animation: marquee 30s linear infinite;
-            }
-          `}</style>
-          <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex shrink-0 gap-8 md:gap-16 px-4 md:px-8 items-center">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary text-2xl">verified_user</span>
-                  <div className="text-left">
-                    <p className="font-label-md text-label-md text-primary font-bold">100% Transit Safe</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">Triple-cushioned delivery</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary text-2xl">eco</span>
-                  <div className="text-left">
-                    <p className="font-label-md text-label-md text-primary font-bold">7-Day Health Guarantee</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">Free replacement if damaged</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary text-2xl">support_agent</span>
-                  <div className="text-left">
-                    <p className="font-label-md text-label-md text-primary font-bold">Horticulturalist Support</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">Lifetime free plant advice</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-secondary text-2xl">local_shipping</span>
-                  <div className="text-left">
-                    <p className="font-label-md text-label-md text-primary font-bold">Pan-India Fast Courier</p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">Delivered within 2-4 days</p>
-                  </div>
+    <footer className="w-full bg-[#182d21] text-white mt-space-xl pt-12 pb-24 md:pb-12 border-t border-white/10">
+      
+      {/* Top Value Propositions Marquee Banner */}
+      <div className="w-full py-4 bg-black/20 overflow-hidden border-y border-white/10 mb-10">
+        <div className="flex w-max animate-marquee hover:[animation-play-state:paused]">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="flex shrink-0 gap-8 md:gap-16 px-4 md:px-8 items-center">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-emerald-400 text-2xl">verified_user</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white">100% Transit Safe</p>
+                  <p className="text-[11px] text-stone-300">Triple-cushioned armor delivery</p>
                 </div>
               </div>
-            ))}
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-emerald-400 text-2xl">eco</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white">7-Day Health Guarantee</p>
+                  <p className="text-[11px] text-stone-300">Free replacement if damaged</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-emerald-400 text-2xl">support_agent</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white">Horticulturalist Support</p>
+                  <p className="text-[11px] text-stone-300">Lifetime free plant advice</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-emerald-400 text-2xl">local_shipping</span>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white">Pan-India Fast Courier</p>
+                  <p className="text-[11px] text-stone-300">Delivered within 2-4 days</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Footer Grid Section */}
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
+        
+        {/* Col 1: Brand Info */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center p-0.5 overflow-hidden shadow-md">
+              <img src="/logo_emblem.jpg" alt="Plantinum Emblem" className="w-full h-full object-cover rounded-lg" />
+            </div>
+            <span className="font-serif text-2xl font-bold tracking-widest text-white">PLANTINUM</span>
+          </div>
+          <p className="text-xs text-stone-300 leading-relaxed">
+            Where Nature Meets Luxury. Hand-reared botanicals potted in nutrient-dense soil for Indian homes and modern executive workspaces.
+          </p>
+        </div>
+
+        {/* Col 2: Navigation Links with Interactive "Shop" Dropdown */}
+        <div className="flex flex-col gap-3" ref={dropdownRef}>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Quick Navigation</h4>
+          <ul className="flex flex-col gap-2.5 text-xs text-stone-200">
+            <li>
+              <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
+            </li>
+
+            {/* Interactive Shop Dropdown Item */}
+            <li className="relative">
+              <button 
+                type="button" 
+                onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+                className="flex items-center gap-1.5 hover:text-emerald-400 transition-colors cursor-pointer text-xs font-bold text-white group"
+              >
+                <span>Shop</span>
+                <span className={`material-symbols-outlined text-base text-emerald-400 transition-transform duration-300 ${isShopDropdownOpen ? 'rotate-180' : ''}`}>
+                  expand_more
+                </span>
+              </button>
+
+              {/* Animated Shop Sub-Menu Dropdown */}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isShopDropdownOpen 
+                  ? 'max-h-48 opacity-100 mt-2 pt-2 border-t border-white/10' 
+                  : 'max-h-0 opacity-0 pointer-events-none'
+              }`}>
+                <ul className="flex flex-col gap-2 pl-3 border-l-2 border-emerald-500/60 text-xs">
+                  <li>
+                    <Link 
+                      href="/shop/indoor-plants" 
+                      onClick={() => setIsShopDropdownOpen(false)}
+                      className="text-stone-200 hover:text-emerald-400 transition-colors flex items-center gap-2 py-1 font-medium"
+                    >
+                      <span>🌿</span>
+                      <span>Indoor plants</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      href="/shop/care-and-soil" 
+                      onClick={() => setIsShopDropdownOpen(false)}
+                      className="text-stone-200 hover:text-emerald-400 transition-colors flex items-center gap-2 py-1 font-medium"
+                    >
+                      <span>🧪</span>
+                      <span>Plant Care and Soil</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      href="/shop/by-space" 
+                      onClick={() => setIsShopDropdownOpen(false)}
+                      className="text-stone-200 hover:text-emerald-400 transition-colors flex items-center gap-2 py-1 font-medium"
+                    >
+                      <span>🏡</span>
+                      <span>Shop by Space</span>
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            </li>
+
+            <li>
+              <Link href="/shop/bundles" className="hover:text-emerald-400 transition-colors">Shop by Bundle</Link>
+            </li>
+            <li>
+              <Link href="/track-order" className="hover:text-emerald-400 transition-colors">Track Order</Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Col 3: Customer Care & Plant Doctor */}
+        <div className="flex flex-col gap-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Botanical Support</h4>
+          <ul className="flex flex-col gap-2 text-xs text-stone-200">
+            <li><span className="text-stone-300">Mon - Sat: 9:00 AM - 7:00 PM</span></li>
+            <li><span className="text-stone-300">Email: info@plantinum.in</span></li>
+            <li><span className="text-stone-300">Dispatch: Metro Kolkata &amp; Pan-India</span></li>
+            <li>
+              <Link href="/track-order" className="inline-flex items-center gap-1.5 text-emerald-400 font-bold hover:underline mt-1">
+                <span className="material-symbols-outlined text-sm">support_agent</span>
+                <span>Plant Doctor Helpdesk</span>
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Col 4: Trust & Guarantee Badge */}
+        <div className="flex flex-col gap-3">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Quality Assured</h4>
+          <div className="bg-black/30 p-4 rounded-2xl border border-white/10 flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+              <span className="material-symbols-outlined text-base">verified</span>
+              <span>Plantinum Promise</span>
+            </div>
+            <p className="text-[11px] text-stone-300">
+              Every specimen undergoes 3-stage pest checks and arrives in specialized protective transit frames.
+            </p>
           </div>
         </div>
-        <div className="w-full px-gutter-mobile lg:px-margin py-space-md flex flex-col md:flex-row items-center justify-center font-body-sm text-body-sm text-on-surface-variant">
-          <div>© 2025 Plantinum Botanicals LLP. Crafted for Green Sanctuaries.</div>
+
+      </div>
+
+      {/* Copyright */}
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-stone-400">
+        <p>© 2026 Plantinum Botanicals. All rights reserved.</p>
+        <div className="flex items-center gap-6">
+          <Link href="/shop/indoor-plants" className="hover:text-white transition-colors">Indoor Plants</Link>
+          <Link href="/shop/care-and-soil" className="hover:text-white transition-colors">Plant Care</Link>
+          <Link href="/shop/by-space" className="hover:text-white transition-colors">Shop by Space</Link>
         </div>
-      </footer>
-    </>
+      </div>
+    </footer>
   );
 }

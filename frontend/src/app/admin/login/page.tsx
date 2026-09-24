@@ -1,29 +1,27 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function AdminLogin() {
+function AdminLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Check for unauthorized redirect error
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('error') === 'unauthorized') {
-        setError('You do not have permission to access the admin portal.');
-        // Clean up URL
-        window.history.replaceState({}, '', '/admin/login');
-      }
+    if (searchParams.get('error') === 'unauthorized') {
+      setError('You do not have permission to access the admin portal.');
+      // Clean up URL
+      router.replace('/admin/login');
     }
-  }, []);
+  }, [searchParams, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,5 +92,13 @@ export default function AdminLogin() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AdminLogin() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdminLoginForm />
+    </Suspense>
   );
 }

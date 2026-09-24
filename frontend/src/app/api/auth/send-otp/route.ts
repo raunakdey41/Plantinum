@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 
+export const dynamic = 'force-dynamic';
+
 // Brevo API Key provided by user
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 
@@ -13,20 +15,22 @@ export async function POST(request: Request) {
     }
 
     // Validate user existence based on action
-    try {
-      const userRecord = await adminAuth.getUserByEmail(email);
-      // If we reach here, the user exists.
-      if (action === 'signup') {
-        return NextResponse.json({ error: 'Account already exists. Please log in.' }, { status: 400 });
-      }
-    } catch (err: any) {
-      if (err.code === 'auth/user-not-found') {
-        // User does not exist
-        if (action === 'reset') {
-          return NextResponse.json({ error: 'No account found with this email.' }, { status: 400 });
+    if (adminAuth) {
+      try {
+        const userRecord = await adminAuth.getUserByEmail(email);
+        // If we reach here, the user exists.
+        if (action === 'signup') {
+          return NextResponse.json({ error: 'Account already exists. Please log in.' }, { status: 400 });
         }
-      } else {
-        throw err;
+      } catch (err: any) {
+        if (err.code === 'auth/user-not-found') {
+          // User does not exist
+          if (action === 'reset') {
+            return NextResponse.json({ error: 'No account found with this email.' }, { status: 400 });
+          }
+        } else {
+          throw err;
+        }
       }
     }
 
@@ -37,11 +41,13 @@ export async function POST(request: Request) {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-    await adminDb.collection('otps').doc(email).set({
-      otp,
-      expiresAt: expiresAt.getTime(),
-      createdAt: Date.now(),
-    });
+    if (adminDb) {
+      await adminDb.collection('otps').doc(email).set({
+        otp,
+        expiresAt: expiresAt.getTime(),
+        createdAt: Date.now(),
+      });
+    }
 
     // Send email via Brevo REST API
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -54,7 +60,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         sender: {
           name: 'Plantinum Store',
-          email: 'GetStarted@plantinum.in'
+          email: 'info@plantinum.in'
         },
         to: [
           { email: email }

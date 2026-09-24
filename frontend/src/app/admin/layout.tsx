@@ -52,7 +52,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Render the admin layout for authenticated routes
   return (
-    <div className="h-screen flex bg-surface-container-low -mt-[80px] lg:-mt-[128px] overflow-hidden">
+    <div className="h-screen flex bg-surface-container-low overflow-hidden">
       
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
@@ -87,6 +87,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/bundles" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-md transition-colors ${pathname.includes('/admin/bundles') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface hover:bg-surface-container'}`}>
             <span className="material-symbols-outlined">inventory_2</span>
             Bundles
+          </Link>
+          <Link href="/admin/pots" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-md transition-colors ${pathname.includes('/admin/pots') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface hover:bg-surface-container'}`}>
+            <span className="material-symbols-outlined">potted_plant</span>
+            Pots & Planters
           </Link>
         </nav>
 
