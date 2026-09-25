@@ -1,0 +1,30 @@
+{
+  "name": "Plantinum - Where Nature Meets Luxury",
+  "short_name": "Plantinum",
+  "description": "Hand-nurtured botanical flora, premium planters, organic soils, and AI plant health doctor.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#182d21",
+  "theme_color": "#182d21",
+  "icons": [
+    {
+      "src": "/logo_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo_icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo_emblem.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

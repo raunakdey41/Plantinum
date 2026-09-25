@@ -4,8 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import BotanicalLivingHero from '@/components/BotanicalLivingHero';
-import { SylvaLivingWorldScene } from '@/shaders/sylva-living-world/SylvaLivingWorldScene';
-import '@/shaders/threeui.css';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 

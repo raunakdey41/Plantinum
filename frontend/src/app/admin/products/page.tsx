@@ -52,6 +52,8 @@ export default function ProductsPage() {
     price: 0,
     discount: 0,
     stock: 50,
+    lastAddedStock: 50,
+    lastStockUpdate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
     category: '',
     gallery: [] as string[],
     isAvailable: true
@@ -113,6 +115,8 @@ export default function ProductsPage() {
     setIsPexelsModalOpen(false);
     setCustomCategoryInput('');
 
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
     if (product) {
       setEditingProduct(product);
       const isCare = product.category === 'Care & Soil' || CARE_CATEGORIES.some(c => (product.category || '').includes(c));
@@ -122,7 +126,9 @@ export default function ProductsPage() {
         botanicalName: product.botanicalName || '',
         price: product.price || 0,
         discount: product.discount || 0,
-        stock: product.stock || 0,
+        stock: product.stock !== undefined ? product.stock : 50,
+        lastAddedStock: product.lastAddedStock !== undefined ? product.lastAddedStock : (product.stock ?? 50),
+        lastStockUpdate: product.lastStockUpdate || '24 Sep 2026',
         category: product.category || '',
         gallery: product.gallery || (product.image ? [product.image] : []),
         isAvailable: product.isAvailable !== false
@@ -137,6 +143,8 @@ export default function ProductsPage() {
         price: 0,
         discount: 0,
         stock: 50,
+        lastAddedStock: 50,
+        lastStockUpdate: todayStr,
         category: PLANT_CATEGORIES[0],
         gallery: [],
         isAvailable: true
@@ -152,6 +160,8 @@ export default function ProductsPage() {
     const defaultCat = newType === 'plant' ? PLANT_CATEGORIES[0] : CARE_CATEGORIES[0];
     setFormData(prev => ({ ...prev, category: defaultCat }));
   };
+
+  const activeCategories = productType === 'plant' ? PLANT_CATEGORIES : CARE_CATEGORIES;
 
   // Helper for Category Checkbox Toggling
   const selectedCategoryList = (formData.category || '')
@@ -292,14 +302,33 @@ export default function ProductsPage() {
     });
   };
 
-  const activeCategories = productType === 'plant' ? PLANT_CATEGORIES : CARE_CATEGORIES;
+  const isCareProduct = (p: any) => {
+    const cat = (p.category || '').toLowerCase();
+    return (
+      cat.includes('care & soil') ||
+      cat.includes('potting mix') ||
+      cat.includes('fertilizer') ||
+      cat.includes('pest') ||
+      cat.includes('soil') ||
+      cat.includes('tools') ||
+      CARE_CATEGORIES.some(c => cat.includes(c.toLowerCase()))
+    );
+  };
+
+  const plantProducts = products
+    .filter(p => !isCareProduct(p))
+    .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.botanicalName && p.botanicalName.toLowerCase().includes(productSearch.toLowerCase())));
+
+  const careProducts = products
+    .filter(p => isCareProduct(p))
+    .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.botanicalName && p.botanicalName.toLowerCase().includes(productSearch.toLowerCase())));
 
   return (
     <div className="flex flex-col gap-4 lg:gap-6 h-full pb-2">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="font-headline-lg text-primary text-2xl md:text-3xl font-bold">Products Management</h1>
-          <p className="text-on-surface-variant font-body-sm md:font-body-md mt-1 md:mt-2">Manage your inventory, prices, and availability.</p>
+          <p className="text-on-surface-variant font-body-sm md:font-body-md mt-1 md:mt-2">Manage your inventory, prices, and availability by category.</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 md:flex-none">
@@ -314,7 +343,7 @@ export default function ProductsPage() {
           </div>
           <button 
             onClick={() => handleOpenModal()}
-            className="bg-primary hover:bg-secondary text-on-primary px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-label-sm md:font-label-md uppercase tracking-wider font-bold transition-colors flex items-center gap-1 md:gap-2 shrink-0"
+            className="bg-primary hover:bg-secondary text-on-primary px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-label-sm md:font-label-md uppercase tracking-wider font-bold transition-colors flex items-center gap-1 md:gap-2 shrink-0 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px] md:text-2xl">add</span>
             <span className="hidden sm:inline">Add Product</span>
@@ -323,58 +352,171 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest rounded-xl md:rounded-2xl border border-outline-variant flex flex-col overflow-hidden flex-1 min-h-0">
-        {loading ? (
-          <div className="p-12 text-center text-on-surface-variant">Loading products...</div>
-        ) : (
-          <div className="overflow-auto flex-1 relative">
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10 bg-surface-container-low shadow-sm">
-                <tr className="border-b border-outline-variant">
-                  <th className="p-4 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-xs">Product</th>
-                  <th className="p-4 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-xs">Category</th>
-                  <th className="p-4 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-xs">Price</th>
-                  <th className="p-4 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-xs">Stock</th>
-                  <th className="p-4 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-xs text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products
-                  .filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.botanicalName && p.botanicalName.toLowerCase().includes(productSearch.toLowerCase())))
-                  .map(product => (
-                  <tr key={product.id} className="border-b border-outline-variant hover:bg-surface-container-low/50 transition-colors">
-                    <td className="p-4 flex items-center gap-4">
-                      {product.image && (
-                        <div className="w-12 h-12 rounded-lg bg-surface-container bg-cover bg-center shrink-0" style={{ backgroundImage: `url(${product.image})` }}></div>
-                      )}
-                      <div>
-                        <p className="font-title-md text-on-surface font-bold">{product.name}</p>
-                        <p className="text-xs text-on-surface-variant italic">{product.botanicalName}</p>
-                      </div>
-                    </td>
-                    <td className="p-4 text-on-surface text-sm">{product.category}</td>
-                    <td className="p-4 text-on-surface font-bold">₹{product.price}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${product.stock > 10 ? 'bg-primary-container text-on-primary-container' : 'bg-error-container text-on-error-container'}`}>
-                        {product.stock} left
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleOpenModal(product)} className="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-primary/10">
-                          <span className="material-symbols-outlined text-sm">edit</span>
-                        </button>
-                        <button onClick={() => handleDelete(product.id, product.name)} className="p-2 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-error/10">
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* 2-Column Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
+        {/* COLUMN 1: BOTANICAL PLANTS */}
+        <div className="bg-surface-container-lowest rounded-xl md:rounded-2xl border border-outline-variant flex flex-col overflow-hidden shadow-sm">
+          <div className="px-5 py-4 bg-surface-container-low border-b border-outline-variant flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌿</span>
+              <h2 className="font-bold text-primary text-base">Botanical Plants ({plantProducts.length})</h2>
+            </div>
+            <span className="text-xs font-bold text-on-surface-variant bg-surface-container-lowest px-2.5 py-1 rounded-full border border-outline-variant">
+              Indoor &amp; Outdoor
+            </span>
           </div>
-        )}
+
+          {loading ? (
+            <div className="p-8 text-center text-on-surface-variant text-xs">Loading plants...</div>
+          ) : plantProducts.length === 0 ? (
+            <div className="p-12 text-center text-on-surface-variant flex flex-col items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-4xl text-outline">potted_plant</span>
+              <p className="font-bold text-sm">No plants found</p>
+              <p className="text-xs text-outline">Add plants using the "Add Product" button above.</p>
+            </div>
+          ) : (
+            <div className="overflow-auto flex-1 relative max-h-[650px]">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-10 bg-surface-container-low shadow-2xs">
+                  <tr className="border-b border-outline-variant">
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Plant</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Category</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Price</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Stock & Inventory</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {plantProducts.map(product => (
+                    <tr key={product.id} className="border-b border-outline-variant/60 hover:bg-surface-container-low/50 transition-colors text-xs">
+                      <td className="p-3 flex items-center gap-3">
+                        {product.image && (
+                          <div className="w-10 h-10 rounded-lg bg-surface-container bg-cover bg-center shrink-0 border border-outline-variant" style={{ backgroundImage: `url(${product.image})` }}></div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-title-md text-on-surface font-bold truncate max-w-[140px]">{product.name}</p>
+                          <p className="text-[10px] text-on-surface-variant italic truncate max-w-[140px]">{product.botanicalName}</p>
+                        </div>
+                      </td>
+                      <td className="p-3 text-on-surface text-xs font-medium">{product.category}</td>
+                      <td className="p-3 text-on-surface font-bold">₹{product.price}</td>
+                      <td className="p-3">
+                        <div className="flex flex-col gap-1 min-w-[130px]">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${product.stock > 10 ? 'bg-primary-container text-on-primary-container' : 'bg-error-container text-on-error-container'}`}>
+                              {product.stock} left
+                            </span>
+                            <span className="text-[10px] text-on-surface-variant font-medium">
+                              (of {product.lastAddedStock ?? product.stock ?? 50})
+                            </span>
+                          </div>
+                          <div className="text-[10px] leading-tight">
+                            <span className="text-on-surface-variant">Batch Added: <strong className="text-primary font-bold">+{product.lastAddedStock ?? product.stock ?? 50}</strong></span>
+                            <span className="block text-[9.5px] text-outline mt-0.5 font-medium">
+                              📅 {product.lastStockUpdate || '24 Sep 2026'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => handleOpenModal(product)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-primary/10 cursor-pointer">
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                          </button>
+                          <button onClick={() => handleDelete(product.id, product.name)} className="p-1.5 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-error/10 cursor-pointer">
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* COLUMN 2: PLANT CARE ITEMS */}
+        <div className="bg-surface-container-lowest rounded-xl md:rounded-2xl border border-outline-variant flex flex-col overflow-hidden shadow-sm">
+          <div className="px-5 py-4 bg-surface-container-low border-b border-outline-variant flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🧪</span>
+              <h2 className="font-bold text-primary text-base">Plant Care &amp; Soil ({careProducts.length})</h2>
+            </div>
+            <span className="text-xs font-bold text-on-surface-variant bg-surface-container-lowest px-2.5 py-1 rounded-full border border-outline-variant">
+              Fertilizers &amp; Mixes
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="p-8 text-center text-on-surface-variant text-xs">Loading care items...</div>
+          ) : careProducts.length === 0 ? (
+            <div className="p-12 text-center text-on-surface-variant flex flex-col items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-4xl text-outline">science</span>
+              <p className="font-bold text-sm">No care items found</p>
+              <p className="text-xs text-outline">Add fertilizers and potting mixes using the "Add Product" button above.</p>
+            </div>
+          ) : (
+            <div className="overflow-auto flex-1 relative max-h-[650px]">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-10 bg-surface-container-low shadow-2xs">
+                  <tr className="border-b border-outline-variant">
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Care Item</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Category</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Price</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px]">Stock & Inventory</th>
+                    <th className="p-3 font-label-md text-on-surface-variant font-bold uppercase tracking-wider text-[11px] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {careProducts.map(product => (
+                    <tr key={product.id} className="border-b border-outline-variant/60 hover:bg-surface-container-low/50 transition-colors text-xs">
+                      <td className="p-3 flex items-center gap-3">
+                        {product.image && (
+                          <div className="w-10 h-10 rounded-lg bg-surface-container bg-cover bg-center shrink-0 border border-outline-variant" style={{ backgroundImage: `url(${product.image})` }}></div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-title-md text-on-surface font-bold truncate max-w-[140px]">{product.name}</p>
+                          <p className="text-[10px] text-on-surface-variant italic truncate max-w-[140px]">{product.botanicalName || 'Plant Care'}</p>
+                        </div>
+                      </td>
+                      <td className="p-3 text-on-surface text-xs font-medium">{product.category}</td>
+                      <td className="p-3 text-on-surface font-bold">₹{product.price}</td>
+                      <td className="p-3">
+                        <div className="flex flex-col gap-1 min-w-[130px]">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${product.stock > 10 ? 'bg-primary-container text-on-primary-container' : 'bg-error-container text-on-error-container'}`}>
+                              {product.stock} left
+                            </span>
+                            <span className="text-[10px] text-on-surface-variant font-medium">
+                              (of {product.lastAddedStock ?? product.stock ?? 50})
+                            </span>
+                          </div>
+                          <div className="text-[10px] leading-tight">
+                            <span className="text-on-surface-variant">Batch Added: <strong className="text-primary font-bold">+{product.lastAddedStock ?? product.stock ?? 50}</strong></span>
+                            <span className="block text-[9.5px] text-outline mt-0.5 font-medium">
+                              📅 {product.lastStockUpdate || '24 Sep 2026'}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => handleOpenModal(product)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-primary/10 cursor-pointer">
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                          </button>
+                          <button onClick={() => handleDelete(product.id, product.name)} className="p-1.5 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-error/10 cursor-pointer">
+                            <span className="material-symbols-outlined text-sm">delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Add / Edit Product Modal */}
@@ -459,15 +601,32 @@ export default function ProductsPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Price (₹)</label>
-                    <input type="number" required value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-surface-container-low p-3.5 rounded-xl border border-outline-variant">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Price (₹)</label>
+                    <input type="number" required value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} className="px-3 py-2 text-xs rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-1 focus:ring-primary outline-none" />
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Stock Qty</label>
-                    <input type="number" required value={formData.stock} onChange={e => setFormData({...formData, stock: Number(e.target.value)})} className="px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Present Stock (Left)</label>
+                    <input type="number" required value={formData.stock} onChange={e => setFormData({...formData, stock: Number(e.target.value)})} className="px-3 py-2 text-xs rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-1 focus:ring-primary outline-none" />
                   </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Batch Added Qty</label>
+                    <input type="number" required value={formData.lastAddedStock} onChange={e => setFormData({...formData, lastAddedStock: Number(e.target.value)})} className="px-3 py-2 text-xs rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-1 focus:ring-primary outline-none" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Stock Update Date</label>
+                  <input 
+                    type="text" 
+                    value={formData.lastStockUpdate} 
+                    onChange={e => setFormData({...formData, lastStockUpdate: e.target.value})} 
+                    placeholder="e.g. 25 Sep 2026"
+                    className="px-4 py-2.5 rounded-lg border border-outline-variant bg-surface-container-low text-on-surface focus:ring-1 focus:ring-primary outline-none text-xs" 
+                  />
                 </div>
 
                 {/* Preset Categories Checkboxes Section */}

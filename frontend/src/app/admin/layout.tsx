@@ -92,6 +92,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="material-symbols-outlined">potted_plant</span>
             Pots & Planters
           </Link>
+          <Link href="/admin/revenue" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-3 px-4 py-3 rounded-lg font-label-md transition-colors ${pathname.includes('/admin/revenue') ? 'bg-primary-container text-on-primary-container' : 'text-on-surface hover:bg-surface-container'}`}>
+            <span className="material-symbols-outlined">payments</span>
+            Revenue Analytics
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-outline-variant">
@@ -106,9 +110,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 lg:ml-64 p-4 lg:p-6 overflow-hidden z-10 relative bg-surface-container-low h-full flex flex-col w-full">
+      <main className="flex-1 lg:ml-64 p-4 lg:p-6 overflow-y-auto z-10 relative bg-surface-container-low h-full flex flex-col w-full">
         <div className="lg:hidden flex items-center mb-4 gap-4 pb-4 border-b border-outline-variant">
-          <button onClick={() => setIsMobileMenuOpen(true)} className="text-on-surface-variant hover:text-primary">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="text-on-surface-variant hover:text-primary cursor-pointer">
             <span className="material-symbols-outlined text-2xl">menu</span>
           </button>
           <h2 className="font-headline-sm text-primary font-bold">Admin Portal</h2>

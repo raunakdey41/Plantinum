@@ -21,6 +21,7 @@ export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModal
   const [address, setAddress] = useState('');
   const [pinCode, setPinCode] = useState('');
   const [utrNumber, setUtrNumber] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Placed Order State
   const [placedOrder, setPlacedOrder] = useState<any>(null);
@@ -49,8 +50,9 @@ export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModal
 
   const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
     if (!fullName || !phone || !address || !pinCode) {
-      alert("Please fill in all delivery details.");
+      setErrorMessage("Please fill in all delivery details.");
       return;
     }
     const fullLoc = `${address}, PIN: ${pinCode}`;
@@ -59,8 +61,9 @@ export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModal
   };
 
   const handleCompleteOrder = () => {
+    setErrorMessage('');
     if (!utrNumber.trim()) {
-      alert("Please enter the 12-digit UTR / Payment Transaction ID from your GPay app.");
+      setErrorMessage("Please enter the 12-digit UTR / Payment Transaction ID from your GPay app.");
       return;
     }
 
@@ -135,6 +138,12 @@ export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModal
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto flex-1">
+          {errorMessage && (
+            <div className="p-3 bg-red-50 text-red-700 font-bold text-xs rounded-xl border border-red-200 mb-4 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-red-600 text-base">error</span>
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           {/* STEP 1: DELIVERY DETAILS */}
           {step === 'details' && (

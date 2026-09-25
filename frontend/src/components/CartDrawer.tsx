@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import { products } from '@/data/products';
-import GPayCheckoutModal from '@/components/GPayCheckoutModal';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -12,18 +11,18 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
+  const router = useRouter();
   const { cart, removeFromCart, updateQuantity } = useStore();
-  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
   // Prevent background scrolling when open
   useEffect(() => {
-    if (isOpen || isCheckoutModalOpen) {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
     return () => { document.body.style.overflow = 'unset'; };
-  }, [isOpen, isCheckoutModalOpen]);
+  }, [isOpen]);
 
   const cartTotal = cart.reduce((total, item) => {
     const numPrice = Number(item.price.replace(/[^0-9]/g, ''));
@@ -40,8 +39,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
     };
   });
 
-  const handleOpenCheckout = () => {
-    setIsCheckoutModalOpen(true);
+  const handleProceedToCheckout = () => {
+    onClose();
+    router.push('/checkout');
   };
 
   return (
@@ -49,7 +49,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-[120] bg-primary/40 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-[120] bg-primary/40 backdrop-blur-sm transition-opacity cursor-pointer"
           onClick={onClose}
         />
       )}
@@ -73,7 +73,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="flex flex-col items-center justify-center h-full text-center text-on-surface-variant gap-4">
               <span className="material-symbols-outlined text-6xl text-surface-container-high">shopping_basket</span>
               <p className="font-body-lg">Your cart is feeling a bit empty.</p>
-              <button onClick={onClose} className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-bold mt-2">Continue Shopping</button>
+              <button onClick={onClose} className="px-6 py-2.5 rounded-lg bg-primary text-on-primary font-bold mt-2 cursor-pointer">Continue Shopping</button>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -88,7 +88,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <h3 className="font-title-md text-sm font-bold text-primary line-clamp-1">{item.name}</h3>
                         <p className="text-[11px] italic text-on-surface-variant line-clamp-1">{item.botanicalName}</p>
                       </div>
-                      <button onClick={() => removeFromCart(item.id)} className="text-outline hover:text-error transition-colors">
+                      <button onClick={() => removeFromCart(item.id)} className="text-outline hover:text-error transition-colors cursor-pointer">
                         <span className="material-symbols-outlined text-[18px]">delete</span>
                       </button>
                     </div>
@@ -130,25 +130,15 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
             </div>
             <button 
-              onClick={handleOpenCheckout}
+              onClick={handleProceedToCheckout}
               className="w-full py-3.5 rounded-xl bg-primary text-on-primary font-label-lg font-bold flex items-center justify-center gap-2 hover:bg-secondary transition-colors cursor-pointer shadow-md"
             >
-              <span>Checkout via GPay</span>
+              <span>Proceed to Place Order</span>
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
             </button>
           </div>
         )}
       </div>
-
-      {/* GPay QR Code Checkout Modal */}
-      <GPayCheckoutModal 
-        isOpen={isCheckoutModalOpen}
-        onClose={() => {
-          setIsCheckoutModalOpen(false);
-          onClose();
-        }}
-      />
     </>
   );
 }
-

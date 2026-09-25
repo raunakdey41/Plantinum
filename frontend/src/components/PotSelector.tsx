@@ -12,6 +12,8 @@ export interface PotOption {
   patternType: 'ribbed' | 'smooth' | 'owl' | 'speckled' | 'fluted' | 'origami' | 'sphere' | 'column';
   hasCollar?: boolean;
   imageUrl?: string;
+  stock?: number;
+  soldCount?: number;
 }
 
 export const DEFAULT_POT_OPTIONS: PotOption[] = [

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, signInWithCustomToken, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useStore } from '@/context/StoreContext';
+import { formatError } from '@/lib/errorUtils';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 
@@ -59,7 +60,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
       
       setOtpSent(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
       await signInWithCustomToken(auth, data.customToken);
       onClose();
     } catch (err: any) {
-      setError(err.message);
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
       onClose();
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'Authentication failed. Please try again.');
+      setError(formatError(err));
     } finally {
       setLoading(false);
     }

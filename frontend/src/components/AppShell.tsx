@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
+import GlobalChatWidget from './GlobalChatWidget';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -19,6 +20,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </main>
       {!isAdmin && <Footer />}
+      {!isAdmin && <GlobalChatWidget />}
     </>
   );
 }
+
