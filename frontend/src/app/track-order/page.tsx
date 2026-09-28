@@ -15,7 +15,7 @@ const TIMELINE_STEPS = [
 ];
 
 export default function TrackOrderPage() {
-  const { liveOrders, submitUtr } = useStore();
+  const { liveOrders, myOrders, addMyOrderId, submitUtr } = useStore();
   const [searchId, setSearchId] = useState('');
   const [searchedOrder, setSearchedOrder] = useState<LiveOrder | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -27,8 +27,24 @@ export default function TrackOrderPage() {
   const [userMsgText, setUserMsgText] = useState('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Default active order to most recent live order or searched order
-  const activeOrder = searchedOrder || (liveOrders.length > 0 ? liveOrders[0] : null);
+  // Read orderId from URL query param if present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlOrderId = params.get('orderId');
+      if (urlOrderId) {
+        setSearchId(urlOrderId);
+        const found = liveOrders.find(o => o.id.toUpperCase() === urlOrderId.trim().toUpperCase());
+        if (found) {
+          setSearchedOrder(found);
+          addMyOrderId(found.id);
+        }
+      }
+    }
+  }, [liveOrders]);
+
+  // Default active order to searched order or most recent order belonging to THIS customer
+  const activeOrder = searchedOrder || (myOrders.length > 0 ? myOrders[0] : null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +59,12 @@ export default function TrackOrderPage() {
       o.id.toUpperCase() === queryStr || 
       (o.trackingNumber && o.trackingNumber.toUpperCase() === queryStr)
     );
-    setSearchedOrder(found || null);
+    if (found) {
+      setSearchedOrder(found);
+      addMyOrderId(found.id);
+    } else {
+      setSearchedOrder(null);
+    }
   };
 
   // Subscribe to real-time Firestore Chat Messages for the active order
@@ -188,7 +209,7 @@ export default function TrackOrderPage() {
         </div>
 
         {/* Empty State: No Orders Placed Yet */}
-        {liveOrders.length === 0 && !searchedOrder ? (
+        {myOrders.length === 0 && !searchedOrder ? (
           <div className="bg-white rounded-2xl p-10 text-center border border-stone-200 shadow-sm max-w-xl mx-auto">
             <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-800 mx-auto flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-3xl">shopping_basket</span>

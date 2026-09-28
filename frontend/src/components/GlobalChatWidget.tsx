@@ -7,7 +7,7 @@ import { db } from '@/lib/firebase';
 import { formatError } from '@/lib/errorUtils';
 
 export default function GlobalChatWidget() {
-  const { liveOrders, submitUtr } = useStore();
+  const { myOrders, submitUtr } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string>('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -17,12 +17,12 @@ export default function GlobalChatWidget() {
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Deduplicate liveOrders by order ID to prevent duplicate React keys
+  // Deduplicate myOrders by order ID to prevent duplicate React keys
   const uniqueLiveOrders: LiveOrder[] = Array.from(
-    new Map(liveOrders.map((o) => [o.id, o])).values()
+    new Map(myOrders.map((o) => [o.id, o])).values()
   );
 
-  // Default active order to most recent live order
+  // Default active order to most recent customer order ONLY
   const activeOrder: LiveOrder | null = 
     uniqueLiveOrders.find(o => o.id === selectedOrderId) || 
     (uniqueLiveOrders.length > 0 ? uniqueLiveOrders[0] : null);
@@ -33,7 +33,7 @@ export default function GlobalChatWidget() {
     }
   }, [uniqueLiveOrders, activeOrder, selectedOrderId]);
 
-  // Subscribe to real-time Firestore Chat Messages for the selected active order
+  // Subscribe to real-time Firestore Chat Messages for the customer's active order or general chat
   useEffect(() => {
     const targetId = activeOrder?.id || 'general';
     try {

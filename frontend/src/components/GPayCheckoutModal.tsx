@@ -10,7 +10,7 @@ interface GPayCheckoutModalProps {
 }
 
 export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModalProps) {
-  const { cart, clearCart, setDeliveryLocation, deliveryLocation: currentLoc } = useStore();
+  const { cart, clearCart, setDeliveryLocation, deliveryLocation: currentLoc, addMyOrderId } = useStore();
   
   // Steps: 'details' | 'payment' | 'success'
   const [step, setStep] = useState<'details' | 'payment' | 'success'>('details');
@@ -101,6 +101,7 @@ export default function GPayCheckoutModal({ isOpen, onClose }: GPayCheckoutModal
       console.error("Error saving order to localStorage:", err);
     }
 
+    addMyOrderId(newOrder.id);
     setPlacedOrder(newOrder);
     clearCart();
     setSubmitting(false);

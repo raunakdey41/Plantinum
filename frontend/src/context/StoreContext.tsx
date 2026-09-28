@@ -42,6 +42,7 @@ export type PaymentDetails = {
 
 export type LiveOrder = {
   id: string;
+  userId?: string | null;
   createdAt: string;
   updatedAt?: string;
   customerDetails: CustomerDetails;
@@ -90,6 +91,8 @@ type StoreContextType = {
   wishlistCount: number;
   
   liveOrders: LiveOrder[];
+  myOrders: LiveOrder[];
+  addMyOrderId: (orderId: string) => void;
   createRealOrder: (details: CustomerDetails) => Promise<LiveOrder | null>;
   updateOrderStatus: (orderId: string, status: OrderStatus, extraPayload?: Partial<LiveOrder>) => Promise<void>;
   submitUtr: (orderId: string, utrNumber: string) => Promise<void>;
@@ -143,6 +146,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [liveOrders, setLiveOrders] = useState<LiveOrder[]>([]);
+  const [myOrderIds, setMyOrderIds] = useState<string[]>([]);
   const [presetRules, setPresetRules] = useState<PresetMessageRule[]>(DEFAULT_PRESET_RULES);
   const [user, setUser] = useState<User | null>(null);
   const [deliveryLocation, setDeliveryLocation] = useState('Kolkata 700001');
@@ -161,12 +165,41 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const savedWishlist = localStorage.getItem('plantinum_wishlist');
     const savedLocation = localStorage.getItem('plantinum_location');
     const savedRules = localStorage.getItem('plantinum_preset_rules');
+    const savedMyOrderIds = localStorage.getItem('plantinum_my_order_ids');
     
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedLocation) setDeliveryLocation(savedLocation);
     if (savedRules) setPresetRules(JSON.parse(savedRules));
+    if (savedMyOrderIds) {
+      try {
+        setMyOrderIds(JSON.parse(savedMyOrderIds));
+      } catch (e) {}
+    }
   }, []);
+
+  const addMyOrderId = (orderId: string) => {
+    setMyOrderIds((prev) => {
+      if (prev.includes(orderId)) return prev;
+      const updated = [orderId, ...prev];
+      localStorage.setItem('plantinum_my_order_ids', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // Filter orders belonging to the logged-in customer or current browser session
+  const myOrders = liveOrders.filter((o) => {
+    if (user?.email && o.customerDetails?.email?.toLowerCase() === user.email.toLowerCase()) {
+      return true;
+    }
+    if (user?.uid && o.userId === user.uid) {
+      return true;
+    }
+    if (myOrderIds.includes(o.id)) {
+      return true;
+    }
+    return false;
+  });
 
   // Real-time Firestore Live Orders Listener
   useEffect(() => {
@@ -276,6 +309,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     const newOrder: LiveOrder = {
       id: orderId,
+      userId: user?.uid || null,
       createdAt: new Date().toISOString(),
       customerDetails,
       items: [...cart],
@@ -298,6 +332,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const existingLocal = JSON.parse(localStorage.getItem('plantinum_live_orders') || '[]');
       localStorage.setItem('plantinum_live_orders', JSON.stringify([newOrder, ...existingLocal]));
     }
+
+    addMyOrderId(orderId);
 
     setLiveOrders(prev => {
       const map = new Map<string, LiveOrder>();
@@ -454,7 +490,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     <StoreContext.Provider value={{
       cart, addToCart, removeFromCart, updateQuantity, clearCart, cartCount,
       wishlist, toggleWishlist, wishlistCount,
-      liveOrders, createRealOrder, updateOrderStatus, submitUtr,
+      liveOrders, myOrders, addMyOrderId, createRealOrder, updateOrderStatus, submitUtr,
       presetRules, updatePresetRules,
       user, setUser,
       deliveryLocation, setDeliveryLocation
