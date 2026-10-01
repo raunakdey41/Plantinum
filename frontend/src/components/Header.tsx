@@ -388,17 +388,15 @@ export default function Header() {
           <nav 
             ref={navRef}
             aria-label="Store departments" 
-            className={`relative hidden lg:flex items-center justify-center gap-16 md:gap-24 lg:gap-28 py-3 text-[11px] md:text-xs tracking-[0.2em] uppercase transition-colors duration-300 ${
+            className={`relative hidden lg:flex items-center justify-center gap-6 md:gap-10 lg:gap-12 py-3.5 text-[11px] md:text-xs tracking-[0.18em] uppercase transition-colors duration-300 ${
               isLightHeader 
-                ? 'border-t border-stone-200/80' 
-                : `border-t border-white/10 ${glowEffect}`
+                ? 'border-t border-[#d4af37]/30 bg-stone-50/40' 
+                : `border-t border-[#d4af37]/25 ${glowEffect}`
             }`}
           >
-            {/* Smooth Sliding Underline Indicator */}
+            {/* Smooth Sliding Golden Underline Indicator */}
             <span
-              className={`absolute bottom-0 h-[2.5px] rounded-full transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none ${
-                isLightHeader ? 'bg-[#182d21]' : 'bg-white'
-              }`}
+              className="absolute bottom-0 h-[2.5px] rounded-full transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] pointer-events-none bg-gradient-to-r from-[#d4af37] via-[#fbf5b7] to-[#d4af37] shadow-[0_0_8px_rgba(212,175,55,0.6)]"
               style={{
                 left: `${indicatorStyle.left}px`,
                 width: `${indicatorStyle.width}px`,
@@ -416,10 +414,14 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   data-active={isActive}
-                  className={`relative py-1 transition-all duration-300 ${
+                  className={`relative px-4 py-1.5 rounded-full border transition-all duration-300 ${
                     isActive 
-                      ? (isLightHeader ? 'text-[#182d21] font-bold' : 'text-white font-bold') 
-                      : (isLightHeader ? 'text-stone-700 hover:text-[#182d21] font-medium' : 'text-stone-300 hover:text-white font-medium')
+                      ? (isLightHeader 
+                          ? 'border-[#9a7413] text-[#78590c] bg-[#d4af37]/15 font-bold shadow-[0_0_10px_rgba(154,116,19,0.25)]' 
+                          : 'border-[#d4af37] text-[#fbf5b7] bg-[#d4af37]/20 font-bold shadow-[0_0_12px_rgba(212,175,55,0.35)]') 
+                      : (isLightHeader 
+                          ? 'border-[#b38728]/40 text-[#9a7413] hover:border-[#9a7413] hover:text-[#634805] hover:bg-[#d4af37]/10 font-semibold' 
+                          : 'border-[#d4af37]/40 text-[#e5c158] hover:border-[#d4af37] hover:text-[#fff2a1] hover:bg-[#d4af37]/10 font-semibold')
                   }`}
                 >
                   {link.label}
@@ -443,10 +445,17 @@ export default function Header() {
           <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-on-surface hover:text-error rounded-full transition-colors cursor-pointer"><span className="material-symbols-outlined">close</span></button>
         </div>
         <div className="flex-1 overflow-y-auto py-4">
-          <div className="flex flex-col gap-1 px-3 mb-6">
-            <Link href="/shop/indoor-plants" className="px-4 py-3 rounded-lg text-on-surface hover:bg-surface-container transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>Indoor Plants</Link>
-            <Link href="/shop/care-and-soil" className="px-4 py-3 rounded-lg text-on-surface hover:bg-surface-container transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>Plant Care &amp; Soil</Link>
-            <Link href="/shop/by-space" className="px-4 py-3 rounded-lg text-on-surface hover:bg-surface-container transition-colors font-medium" onClick={() => setIsMobileMenuOpen(false)}>Shop by Space</Link>
+          <div className="flex flex-col gap-2 px-3 mb-6">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.href}
+                href={link.href} 
+                className="px-4 py-2.5 rounded-xl border border-[#d4af37]/40 text-[#9a7413] bg-[#d4af37]/5 hover:border-[#9a7413] hover:bg-[#d4af37]/15 transition-colors font-bold text-xs uppercase tracking-wider" 
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
           <div className="h-px bg-surface-container mx-4 mb-6"></div>
           <div className="flex flex-col gap-1 px-3">

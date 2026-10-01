@@ -3,7 +3,7 @@ import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 
 export const dynamic = 'force-dynamic';
 
-// Brevo API Key provided by user
+// Brevo API Key provided by user environment
 const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
 
 export async function POST(request: Request) {
@@ -20,24 +20,31 @@ export async function POST(request: Request) {
         const userRecord = await adminAuth.getUserByEmail(email);
         // If we reach here, the user exists.
         if (action === 'signup') {
-          return NextResponse.json({ error: 'Account already exists. Please log in.' }, { status: 400 });
+          return NextResponse.json({ error: 'Account already exists with this email. Please log in.' }, { status: 400 });
         }
       } catch (err: any) {
         if (err.code === 'auth/user-not-found') {
           // User does not exist
           if (action === 'reset') {
-            return NextResponse.json({ error: 'No account found with this email.' }, { status: 400 });
+            return NextResponse.json({ error: 'No account found with this email address.' }, { status: 400 });
           }
         } else {
-          throw err;
+          console.warn('adminAuth user check notice:', err);
         }
       }
+    }
+
+    if (!BREVO_API_KEY) {
+      console.error('BREVO_API_KEY environment variable is not configured.');
+      return NextResponse.json({ 
+        error: 'Email service configuration missing (BREVO_API_KEY not set). Please configure BREVO_API_KEY.' 
+      }, { status: 500 });
     }
 
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store OTP in Firestore with expiration (e.g., 10 minutes)
+    // Store OTP in Firestore with expiration (10 minutes)
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
@@ -82,9 +89,16 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Brevo error:', errorData);
-      return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
+      const responseText = await response.text();
+      let errorMsg = 'Failed to send email via Brevo.';
+      try {
+        const errorData = JSON.parse(responseText);
+        if (errorData?.message) errorMsg = errorData.message;
+      } catch (e) {
+        if (responseText) errorMsg = responseText;
+      }
+      console.error('Brevo email sending failed:', response.status, responseText);
+      return NextResponse.json({ error: errorMsg }, { status: response.status || 500 });
     }
 
     return NextResponse.json({ success: true, message: 'OTP sent successfully' });

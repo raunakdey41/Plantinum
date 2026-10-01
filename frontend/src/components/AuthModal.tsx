@@ -55,7 +55,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         body: JSON.stringify({ email, action }),
       });
       
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error(`Server response error (${res.status}): ${rawText || 'Empty response'}`);
+      }
+
       if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
       
       setOtpSent(true);
@@ -84,7 +91,14 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
         body: JSON.stringify({ email, otp, password, action }),
       });
       
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error(`Server response error (${res.status}): ${rawText || 'Empty response'}`);
+      }
+
       if (!res.ok) throw new Error(data.error || 'Failed to verify OTP');
       
       // Successfully verified, we get a custom token

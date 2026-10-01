@@ -117,17 +117,12 @@ export default function GlobalChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-3 bg-[#182d21] text-white p-4 sm:px-5 sm:py-3.5 rounded-full shadow-2xl hover:bg-[#0f1c13] transition-all transform hover:scale-105 border border-emerald-600/40 cursor-pointer"
+          className="group flex items-center justify-center bg-[#182d21] text-white w-14 h-14 rounded-full shadow-2xl hover:bg-[#0f1c13] transition-all transform hover:scale-110 border border-emerald-600/40 cursor-pointer relative"
           title="Open Plantinum Atelier Live Chat"
+          aria-label="Open Live Chat"
         >
-          <div className="relative flex items-center justify-center">
-            <span className="material-symbols-outlined text-2xl text-emerald-300">chat</span>
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#182d21] animate-pulse" />
-          </div>
-          <div className="hidden sm:flex flex-col text-left">
-            <span className="text-xs font-bold text-white tracking-wide">Live Concierge Chat</span>
-            <span className="text-[10px] text-emerald-300">Atelier Support &amp; Payment</span>
-          </div>
+          <span className="material-symbols-outlined text-2xl text-emerald-300">chat</span>
+          <span className="absolute top-2.5 right-2.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-[#182d21] animate-pulse" />
         </button>
       )}
 
